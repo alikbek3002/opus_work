@@ -133,18 +133,27 @@ async def view_employee(
         .execute()
     )
 
+    # 2. Получаем полные данные сотрудника безопасно (без .single(), чтобы не падать в 500)
+    employee_response = (
+        supabase.table("employees")
+        .select("*")
+        .eq("id", employee_id)
+        .limit(1)
+        .execute()
+    )
+    employee = employee_response.data[0] if employee_response.data else None
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Сотрудник не найден или анкета была обновлена. Обновите список сотрудников."
+        )
+
     if existing_view.data:
         # Уже просмотрен — возвращаем без списания
-        employee = (
-            supabase.table("employees")
-            .select("*")
-            .eq("id", employee_id)
-            .single()
-            .execute()
-        )
-        return employee.data
+        return employee
 
-    # 2. Ищем активную подписку с оставшимися карточками
+    # 3. Ищем активную подписку с оставшимися карточками
     now_iso = datetime.utcnow().isoformat()
     subscription = (
         supabase.table("subscriptions")
@@ -166,18 +175,6 @@ async def view_employee(
 
     sub = subscription.data[0]
 
-    # 3. Получаем полные данные сотрудника
-    employee = (
-        supabase.table("employees")
-        .select("*")
-        .eq("id", employee_id)
-        .single()
-        .execute()
-    )
-
-    if not employee.data:
-        raise HTTPException(status_code=404, detail="Сотрудник не найден")
-
     # 4. Списываем карточку из подписки
     new_remaining = sub["cards_remaining"] - 1
     update_data = {"cards_remaining": new_remaining}
@@ -197,7 +194,7 @@ async def view_employee(
         "subscription_id": sub["id"],
     }).execute()
 
-    return employee.data
+    return employee
 
 
 @router.get("/viewed")
