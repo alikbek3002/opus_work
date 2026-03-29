@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS employers (
 -- 3. Тарифные планы
 CREATE TABLE IF NOT EXISTS tariff_plans (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,               -- «Базовый», «Стандарт», «Премиум»
+    name TEXT NOT NULL,               -- «Неделя», «Месяц»
     period TEXT NOT NULL CHECK (period IN ('week', 'month')),
     card_limit INTEGER NOT NULL,       -- Лимит просмотров карточек
     price INTEGER NOT NULL,            -- Цена в сомах
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS card_views (
     viewed_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 6. Платежи (Fenik Pay)
+-- 6. Платежи (Finik Acquiring)
 CREATE TABLE IF NOT EXISTS payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     employer_id UUID NOT NULL REFERENCES employers(id) ON DELETE CASCADE,
@@ -97,52 +97,62 @@ ALTER TABLE card_views ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 
 -- employees: аутентифицированные пользователи могут читать
+DROP POLICY IF EXISTS "employees_select" ON employees;
 CREATE POLICY "employees_select" ON employees
     FOR SELECT TO authenticated
     USING (true);
 
 -- employees: сервисная роль может всё (для бота)
+DROP POLICY IF EXISTS "employees_service_all" ON employees;
 CREATE POLICY "employees_service_all" ON employees
     FOR ALL TO service_role
     USING (true)
     WITH CHECK (true);
 
 -- employers: каждый видит/редактирует только свою запись
+DROP POLICY IF EXISTS "employers_select_own" ON employers;
 CREATE POLICY "employers_select_own" ON employers
     FOR SELECT TO authenticated
     USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "employers_insert_own" ON employers;
 CREATE POLICY "employers_insert_own" ON employers
     FOR INSERT TO authenticated
     WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "employers_update_own" ON employers;
 CREATE POLICY "employers_update_own" ON employers
     FOR UPDATE TO authenticated
     USING (auth.uid() = id)
     WITH CHECK (auth.uid() = id);
 
 -- tariff_plans: все аутентифицированные читают
+DROP POLICY IF EXISTS "tariffs_select" ON tariff_plans;
 CREATE POLICY "tariffs_select" ON tariff_plans
     FOR SELECT TO authenticated
     USING (is_active = true);
 
 -- subscriptions: работодатель видит только свои
+DROP POLICY IF EXISTS "subscriptions_select_own" ON subscriptions;
 CREATE POLICY "subscriptions_select_own" ON subscriptions
     FOR SELECT TO authenticated
     USING (employer_id = auth.uid());
 
 -- subscription_notifications: сервисная роль управляет напоминаниями
+DROP POLICY IF EXISTS "subscription_notifications_service_all" ON subscription_notifications;
 CREATE POLICY "subscription_notifications_service_all" ON subscription_notifications
     FOR ALL TO service_role
     USING (true)
     WITH CHECK (true);
 
 -- card_views: работодатель видит свои просмотры
+DROP POLICY IF EXISTS "card_views_select_own" ON card_views;
 CREATE POLICY "card_views_select_own" ON card_views
     FOR SELECT TO authenticated
     USING (employer_id = auth.uid());
 
 -- payments: работодатель видит свои платежи
+DROP POLICY IF EXISTS "payments_select_own" ON payments;
 CREATE POLICY "payments_select_own" ON payments
     FOR SELECT TO authenticated
     USING (employer_id = auth.uid());
@@ -151,13 +161,26 @@ CREATE POLICY "payments_select_own" ON payments
 -- Дефолтные тарифные планы
 -- ============================================
 
-INSERT INTO tariff_plans (name, period, card_limit, price, description) VALUES
-    ('Базовый', 'week', 30, 500, 'Доступ к 30 карточкам сотрудников на неделю'),
-    ('Базовый', 'month', 30, 1500, 'Доступ к 30 карточкам сотрудников на месяц'),
-    ('Стандарт', 'week', 80, 1000, 'Доступ к 80 карточкам сотрудников на неделю'),
-    ('Стандарт', 'month', 80, 3500, 'Доступ к 80 карточкам сотрудников на месяц'),
-    ('Премиум', 'week', 200, 2000, 'Доступ к 200 карточкам сотрудников на неделю'),
-    ('Премиум', 'month', 200, 7000, 'Доступ к 200 карточкам сотрудников на месяц');
+INSERT INTO tariff_plans (name, period, card_limit, price, description, is_active)
+SELECT 'Неделя', 'week', 25, 1900, '25 контактов, до 15 в день', TRUE
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM tariff_plans
+    WHERE period = 'week'
+      AND card_limit = 25
+      AND price = 1900
+      AND is_active = TRUE
+)
+UNION ALL
+SELECT 'Месяц', 'month', 80, 4900, '80 контактов, до 20 в день', TRUE
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM tariff_plans
+    WHERE period = 'month'
+      AND card_limit = 80
+      AND price = 4900
+      AND is_active = TRUE
+);
 
 -- ============================================
 -- Индексы для производительности

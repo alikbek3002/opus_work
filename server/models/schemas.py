@@ -98,9 +98,3 @@ class PaymentResponse(BaseModel):
     payment_id: str
     payment_url: Optional[str] = None
     status: str
-
-
-class FenikPayCallback(BaseModel):
-    payment_id: str
-    status: str
-    transaction_id: Optional[str] = None

@@ -1,13 +1,9 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTariffs, useSubscription, useCreatePayment } from '../hooks/useTariffs';
-import TariffCard from '../components/TariffCard';
+import { SquishyPricing } from '../components/ui/squishy-pricing';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Tariffs() {
-    const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
-    const [periodFilter, setPeriodFilter] = useState<'week' | 'month'>('month');
 
     const { data: tariffs = [], isPending, isError, error } = useTariffs();
     const { data: subscription } = useSubscription();
@@ -21,18 +17,21 @@ export default function Tariffs() {
 
         try {
             const result = await paymentMutation.mutateAsync(tariffId);
-            if (result.payment_url) {
-                window.location.href = result.payment_url;
-            } else {
-                // Fenik Pay ещё не подключен — заглушка
-                alert('Платёжная система Fenik Pay пока не подключена.\nID платежа: ' + result.payment_id);
+            if (!result.payment_url) {
+                throw new Error('Не удалось получить ссылку на оплату. Попробуйте ещё раз.');
             }
+            window.location.assign(result.payment_url);
         } catch {
             // Ошибка показывается ниже
         }
     };
 
-    const filteredTariffs = (tariffs as any[]).filter((t) => t.period === periodFilter);
+    const orderedTariffs = (tariffs as any[])
+        .filter((t) => t.period === 'week' || t.period === 'month')
+        .sort((a, b) => {
+            const order = { week: 0, month: 1 } as const;
+            return order[a.period as 'week' | 'month'] - order[b.period as 'week' | 'month'];
+        });
 
     if (isPending) {
         return (
@@ -59,23 +58,6 @@ export default function Tariffs() {
                 )}
             </div>
 
-            <div className="flex justify-center">
-                <div className="inline-flex p-1 bg-muted rounded-xl border">
-                    <button
-                        className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${periodFilter === 'week' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                        onClick={() => setPeriodFilter('week')}
-                    >
-                        Неделя
-                    </button>
-                    <button
-                        className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${periodFilter === 'month' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                        onClick={() => setPeriodFilter('month')}
-                    >
-                        Месяц
-                    </button>
-                </div>
-            </div>
-
             {isError && (
                 <div className="bg-destructive/15 text-destructive border border-destructive/30 px-4 py-3 rounded-lg font-medium max-w-md mx-auto">
                     {(error as Error).message}
@@ -88,15 +70,12 @@ export default function Tariffs() {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto w-full px-4">
-                {filteredTariffs.map((tariff, index) => (
-                    <TariffCard
-                        key={tariff.id}
-                        tariff={tariff}
-                        isPopular={index === 1}
-                        onSelect={handleSelectTariff}
-                    />
-                ))}
+            <div className="w-full">
+                <SquishyPricing 
+                    tariffs={orderedTariffs} 
+                    onSelect={handleSelectTariff} 
+                    isPopularIndex={1} 
+                />
             </div>
         </div>
     );
