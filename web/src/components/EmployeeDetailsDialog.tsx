@@ -93,10 +93,8 @@ export default function EmployeeDetailsDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-3xl w-[95vw] sm:w-full p-0 overflow-hidden border-0 shadow-2xl rounded-3xl bg-background">
-                <div className="absolute top-0 right-0 -m-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-
-                <DialogHeader className="px-4 pt-6 pb-3 sm:px-8 sm:pt-8 sm:pb-4 relative z-10 border-b border-border/40 bg-muted/20">
+            <DialogContent className="sm:max-w-3xl w-[95vw] sm:w-full p-0 overflow-hidden border shadow-xl rounded-xl bg-background">
+                <DialogHeader className="px-4 pt-6 pb-3 sm:px-8 sm:pt-8 sm:pb-4 relative z-10 border-b border-border/40 bg-muted/10">
                     <div className="flex items-start justify-between gap-4">
                         <div>
                             <DialogTitle className="flex items-center gap-2 text-2xl sm:text-3xl font-bold tracking-tight">
@@ -113,22 +111,22 @@ export default function EmployeeDetailsDialog({
                 <div className="px-4 py-4 sm:px-8 sm:py-6 space-y-5 sm:space-y-8 relative z-10 max-h-[85vh] sm:max-h-[75vh] overflow-y-auto">
 
                     <div className="grid gap-3 sm:gap-4 sm:grid-cols-3">
-                        <div className="rounded-2xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
+                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
                             <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground">Возраст</p>
                             <p className="mt-2 text-2xl font-bold">{displayValue(employee.age)}</p>
                         </div>
-                        <div className="rounded-2xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
+                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
                             <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground">Пол</p>
                             <p className="mt-2 text-2xl font-bold">{displayValue(employee.gender)}</p>
                         </div>
-                        <div className="rounded-2xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
+                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
                             <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground">Район</p>
                             <p className="mt-2 text-2xl font-bold truncate">{displayValue(employee.district)}</p>
                         </div>
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="rounded-2xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
+                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
                             <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                 <BriefcaseBusiness className="h-4 w-4 text-primary" />
                                 Профессия
@@ -138,7 +136,7 @@ export default function EmployeeDetailsDialog({
                             </p>
                         </div>
 
-                        <div className="rounded-2xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
+                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
                             <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                 <ShieldCheck className="h-4 w-4 text-primary" />
                                 Статус в базе
@@ -148,7 +146,7 @@ export default function EmployeeDetailsDialog({
                             </p>
                         </div>
 
-                        <div className="rounded-2xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
+                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
                             <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                 <UserRound className="h-4 w-4 text-primary" />
                                 Опыт работы
@@ -158,7 +156,7 @@ export default function EmployeeDetailsDialog({
                             </p>
                         </div>
 
-                        <div className="rounded-2xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
+                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
                             <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                 <Clock3 className="h-4 w-4 text-primary" />
                                 Занятость
@@ -168,7 +166,7 @@ export default function EmployeeDetailsDialog({
                             </p>
                         </div>
 
-                        <div className="rounded-2xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
+                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
                             <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                 <Clock3 className="h-4 w-4 text-primary" />
                                 Готовность к выходным
@@ -178,7 +176,7 @@ export default function EmployeeDetailsDialog({
                             </p>
                         </div>
 
-                        <div className="rounded-2xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
+                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
                             <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                 <ShieldCheck className="h-4 w-4 text-primary" />
                                 Рекомендации
@@ -188,7 +186,7 @@ export default function EmployeeDetailsDialog({
                             </p>
                         </div>
 
-                        <div className="rounded-2xl border border-border/50 bg-card p-4 sm:p-5 sm:col-span-2 shadow-sm">
+                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 sm:col-span-2 shadow-sm">
                             <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                 <UserRound className="h-4 w-4 text-primary" />
                                 О себе
@@ -199,7 +197,7 @@ export default function EmployeeDetailsDialog({
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 shadow-sm">
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 shadow-sm">
                         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-base font-bold text-foreground">
@@ -228,7 +226,7 @@ export default function EmployeeDetailsDialog({
                             {telegramLink || unlockedProfile?.phone_number ? (
                                 <div className="flex flex-col gap-3 min-w-0 sm:min-w-[240px] w-full sm:w-auto">
                                     {telegramLink ? (
-                                        <Button asChild className="w-full h-11 rounded-xl shadow-md" variant="default">
+                                        <Button asChild className="w-full h-11 rounded-lg shadow-md" variant="default">
                                             <a href={telegramLink} target="_blank" rel="noreferrer">
                                                 <Send className="mr-2 h-4 w-4" />
                                                 Написать в Telegram
@@ -236,14 +234,14 @@ export default function EmployeeDetailsDialog({
                                         </Button>
                                     ) : null}
                                     {whatsappUrl ? (
-                                        <Button asChild className="w-full h-11 rounded-xl bg-[#25D366] hover:bg-[#20BE5A] text-white shadow-md">
+                                        <Button asChild className="w-full h-11 rounded-lg bg-[#25D366] hover:bg-[#20BE5A] text-white shadow-md">
                                             <a href={whatsappUrl} target="_blank" rel="noreferrer">
                                                 <Smartphone className="mr-2 h-4 w-4" />
                                                 Написать в WhatsApp
                                             </a>
                                         </Button>
                                     ) : unlockedProfile?.phone_number ? (
-                                        <div className="rounded-xl border border-border/50 bg-card px-4 py-3 text-sm text-foreground shadow-sm">
+                                        <div className="rounded-lg border border-border/50 bg-card px-4 py-3 text-sm text-foreground shadow-sm">
                                             <div className="flex items-center justify-center gap-2 font-bold">
                                                 <Phone className="h-4 w-4 text-primary" />
                                                 {unlockedProfile.phone_number}
@@ -257,7 +255,7 @@ export default function EmployeeDetailsDialog({
                             ) : (
                                 <Button
                                     onClick={handlePrimaryAction}
-                                    className="w-full sm:min-w-[240px] h-11 sm:h-12 text-xs sm:text-sm font-semibold rounded-xl shadow-md bg-foreground text-background hover:bg-foreground/90"
+                                    className="w-full sm:min-w-[240px] h-11 sm:h-12 text-xs sm:text-sm font-semibold rounded-lg shadow-md bg-foreground text-background hover:bg-foreground/90"
                                     disabled={isUnlocking}
                                 >
                                     {isUnlocking ? "Открываем..." : isViewed ? "Открыть снова" : "Открыть контакт и связаться"}

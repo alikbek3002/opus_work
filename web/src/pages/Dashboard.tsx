@@ -104,7 +104,7 @@ export default function Dashboard() {
                     <div className="absolute bottom-0 left-0 -m-8 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
                 </div>
 
-                <div className="relative z-20 w-full space-y-1">
+                <div className="relative z-30 w-full space-y-1">
                     <MultiSelectDropdown
                         label="Районы"
                         placeholder="Выберите районы"
