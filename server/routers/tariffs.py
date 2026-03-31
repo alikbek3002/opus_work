@@ -11,7 +11,7 @@ from services.email import email_is_configured, send_email
 router = APIRouter(prefix="/api/tariffs", tags=["Тарифные планы"])
 
 
-@router.get("/", response_model=list[TariffPlan])
+@router.get("", response_model=list[TariffPlan])
 async def get_tariffs():
     """Получить список доступных тарифных планов."""
     response = (

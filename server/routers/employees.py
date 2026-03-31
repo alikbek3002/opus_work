@@ -15,7 +15,7 @@ def normalize_filter_values(values: list[str] | None) -> list[str]:
     return [value.strip() for value in values if value and value.strip()]
 
 
-@router.get("/", response_model=list[EmployeeCard])
+@router.get("", response_model=list[EmployeeCard])
 async def get_employees(
     page: int = Query(1, ge=1, description="Номер страницы"),
     limit: int = Query(20, ge=1, le=100, description="Количество на странице"),
