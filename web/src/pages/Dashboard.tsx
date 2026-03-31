@@ -93,12 +93,12 @@ export default function Dashboard() {
         <div className="flex flex-col gap-8 w-full">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Специалисты</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Специалисты</h1>
                     <p className="text-muted-foreground mt-1">Ресурсная база проверенных сотрудников</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-card border border-border/50 rounded-2xl p-6 shadow-sm relative">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-card border border-border/50 rounded-2xl p-4 sm:p-6 shadow-sm relative">
                 <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
                     <div className="absolute top-0 right-0 -m-8 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
                     <div className="absolute bottom-0 left-0 -m-8 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
@@ -126,16 +126,16 @@ export default function Dashboard() {
                     />
                 </div>
 
-                <div className="md:col-span-2 flex flex-col sm:flex-row gap-3 mt-2 relative z-10">
+                <div className="md:col-span-2 flex flex-col sm:flex-row gap-3 mt-2 relative z-10 w-full">
                     <button
                         onClick={handleSearch}
-                        className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md h-11 px-6 py-2"
+                        className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md h-11 px-6 py-2 w-full sm:w-auto"
                     >
                         Найти сотрудников
                     </button>
                     <button
                         onClick={handleResetFilters}
-                        className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-muted hover:text-foreground h-11 px-6 py-2"
+                        className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-muted hover:text-foreground h-11 px-6 py-2 w-full sm:w-auto"
                     >
                         Сбросить фильтры
                     </button>
@@ -149,13 +149,13 @@ export default function Dashboard() {
             )}
 
             {employees.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 px-4 text-center border border-border/50 rounded-2xl bg-card shadow-sm">
+                <div className="flex flex-col items-center justify-center py-10 sm:py-20 px-4 text-center border border-border/50 rounded-2xl bg-card shadow-sm">
                     <span className="text-5xl mb-4">🔍</span>
                     <h3 className="text-xl font-semibold mb-2">Не найдено ни одного сотрудника</h3>
                     <p className="text-muted-foreground">Попробуйте изменить параметры поиска или загляните позже.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
                     {employees.map((emp) => (
                         <EmployeeCard
                             key={emp.id}

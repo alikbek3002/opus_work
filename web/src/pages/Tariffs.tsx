@@ -44,9 +44,9 @@ export default function Tariffs() {
 
     return (
         <div className="flex flex-col gap-10 w-full animate-in fade-in duration-500">
-            <div className="text-center max-w-2xl mx-auto space-y-4">
-                <h1 className="text-4xl font-bold tracking-tight">Тарифные планы</h1>
-                <p className="text-muted-foreground text-lg">
+            <div className="text-center max-w-2xl mx-auto space-y-4 px-4 sm:px-0">
+                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Тарифные планы</h1>
+                <p className="text-muted-foreground text-base sm:text-lg">
                     Выберите подходящий тариф для доступа к базе проверенных сотрудников
                 </p>
 
@@ -71,10 +71,10 @@ export default function Tariffs() {
             )}
 
             <div className="w-full">
-                <SquishyPricing 
-                    tariffs={orderedTariffs} 
-                    onSelect={handleSelectTariff} 
-                    isPopularIndex={1} 
+                <SquishyPricing
+                    tariffs={orderedTariffs}
+                    onSelect={handleSelectTariff}
+                    isPopularIndex={1}
                 />
             </div>
         </div>

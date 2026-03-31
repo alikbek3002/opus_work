@@ -56,7 +56,7 @@ export const ProfileCard = React.forwardRef<HTMLDivElement, ProfileCardProps>(
             <motion.div
                 ref={ref}
                 className={cn(
-                    "w-full rounded-2xl border bg-card text-card-foreground shadow-sm p-6 flex flex-col gap-6 cursor-pointer relative overflow-hidden",
+                    "w-full rounded-2xl border bg-card text-card-foreground shadow-sm p-5 sm:p-6 flex flex-col gap-5 sm:gap-6 cursor-pointer relative overflow-hidden",
                     className
                 )}
                 variants={cardVariants}

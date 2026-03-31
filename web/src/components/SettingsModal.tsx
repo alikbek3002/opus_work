@@ -158,7 +158,7 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                         ) : (
                             <div className="max-h-[58vh] space-y-3 overflow-y-auto pr-1">
                                 {viewedHistory.map((employee) => (
-                                    <div key={employee.id} className="rounded-2xl border bg-background p-4">
+                                    <div key={employee.id} className="rounded-2xl border bg-background p-3 sm:p-4">
                                         {(() => {
                                             const telegramUsername = employee.telegram_username?.replace(/^@/, "") || null;
                                             const telegramLink = telegramUsername
@@ -170,58 +170,58 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
 
                                             return (
                                                 <>
-                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <h5 className="font-semibold">{employee.full_name}</h5>
-                                                    {employee.is_verified ? (
-                                                        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600">
-                                                            Проверен
-                                                        </span>
-                                                    ) : null}
-                                                </div>
-                                                <p className="mt-1 text-sm text-muted-foreground">
-                                                    {[employee.specializations, employee.district].filter(Boolean).join(" • ")}
-                                                </p>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground">
-                                                Открыт: {formatViewedAt(employee.viewed_at)}
-                                            </p>
-                                        </div>
+                                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <h5 className="font-semibold">{employee.full_name}</h5>
+                                                                {employee.is_verified ? (
+                                                                    <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600">
+                                                                        Проверен
+                                                                    </span>
+                                                                ) : null}
+                                                            </div>
+                                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                                {[employee.specializations, employee.district].filter(Boolean).join(" • ")}
+                                                            </p>
+                                                        </div>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Открыт: {formatViewedAt(employee.viewed_at)}
+                                                        </p>
+                                                    </div>
 
-                                        <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
-                                            <p>Возраст: <span className="text-foreground">{employee.age ?? "Не указано"}</span></p>
-                                            <p>Пол: <span className="text-foreground">{employee.gender || "Не указано"}</span></p>
-                                            <p>Опыт: <span className="text-foreground">{employee.experience || "Не указано"}</span></p>
-                                            <p>Opus: <span className="text-foreground">{employee.opus_experience || "Не указано"}</span></p>
-                                            <p>Telegram: <span className="text-foreground">{telegramUsername ? `@${telegramUsername}` : "Не указан"}</span></p>
-                                            <p>Номер: <span className="text-foreground">{employee.phone_number || "Не указан"}</span></p>
-                                        </div>
+                                                    <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                                                        <p>Возраст: <span className="text-foreground">{employee.age ?? "Не указано"}</span></p>
+                                                        <p>Пол: <span className="text-foreground">{employee.gender || "Не указано"}</span></p>
+                                                        <p>Опыт: <span className="text-foreground">{employee.experience || "Не указано"}</span></p>
+                                                        <p>Opus: <span className="text-foreground">{employee.opus_experience || "Не указано"}</span></p>
+                                                        <p>Telegram: <span className="text-foreground">{telegramUsername ? `@${telegramUsername}` : "Не указан"}</span></p>
+                                                        <p>Номер: <span className="text-foreground">{employee.phone_number || "Не указан"}</span></p>
+                                                    </div>
 
-                                        <div className="mt-4 flex flex-wrap items-center gap-3">
-                                            {telegramLink ? (
-                                                <Button asChild size="sm" variant="outline">
-                                                    <a href={telegramLink} target="_blank" rel="noreferrer">
-                                                        Telegram
-                                                    </a>
-                                                </Button>
-                                            ) : null}
-                                            {whatsappUrl ? (
-                                                <Button asChild size="sm">
-                                                    <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                                                        WhatsApp
-                                                    </a>
-                                                </Button>
-                                            ) : employee.phone_number ? (
-                                                <span className="text-xs text-muted-foreground">
-                                                    У сотрудника нет WhatsApp. Доступен обычный номер: {employee.phone_number}
-                                                </span>
-                                            ) : (
-                                                <span className="text-xs text-muted-foreground">
-                                                    Контакты не указаны
-                                                </span>
-                                            )}
-                                        </div>
+                                                    <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3">
+                                                        {telegramLink ? (
+                                                            <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
+                                                                <a href={telegramLink} target="_blank" rel="noreferrer">
+                                                                    Telegram
+                                                                </a>
+                                                            </Button>
+                                                        ) : null}
+                                                        {whatsappUrl ? (
+                                                            <Button asChild size="sm" className="w-full sm:w-auto">
+                                                                <a href={whatsappUrl} target="_blank" rel="noreferrer">
+                                                                    WhatsApp
+                                                                </a>
+                                                            </Button>
+                                                        ) : employee.phone_number ? (
+                                                            <span className="text-xs text-muted-foreground">
+                                                                У сотрудника нет WhatsApp. Доступен обычный номер: {employee.phone_number}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-xs text-muted-foreground">
+                                                                Контакты не указаны
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </>
                                             );
                                         })()}

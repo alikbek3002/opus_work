@@ -46,7 +46,7 @@ export default function Layout() {
                     tabIndex={0}
                     aria-label="Перейти к тарифным планам"
                 >
-                    <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
+                    <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 sm:gap-3 px-2 sm:px-4">
                         <div className="hidden shrink-0 items-center gap-2 rounded-full border border-primary/30 bg-white px-3 py-1.5 text-xs font-semibold text-primary shadow-sm sm:inline-flex">
                             <Megaphone className="h-3.5 w-3.5" />
                             Акции тарифов
@@ -55,7 +55,7 @@ export default function Layout() {
                             {tariffAnnouncements.map((announcement, index) => (
                                 <div
                                     key={`${announcement}-${index}`}
-                                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm"
+                                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-sm font-medium text-slate-700 shadow-sm"
                                 >
                                     <BadgePercent className="h-4 w-4 text-primary" />
                                     <span className="whitespace-nowrap">{announcement}</span>
@@ -67,54 +67,54 @@ export default function Layout() {
                         </span>
                     </div>
                 </div>
-                <div className="container flex h-16 items-center justify-between mx-auto px-4 max-w-7xl">
-                    <Link to="/" className="flex items-center gap-2">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-                            O
-                        </span>
+                <div className="container flex h-16 items-center justify-between mx-auto px-3 sm:px-4 max-w-7xl">
+                    <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary p-1 shadow-sm">
+                            <img src="/logo.png" alt="Opus" className="h-full w-full object-contain" />
+                        </div>
                         <span className="text-xl font-bold tracking-tight hidden sm:inline-block">Opus</span>
                     </Link>
 
-                    <nav className="flex items-center gap-6">
+                    <nav className="flex items-center gap-3 sm:gap-6">
                         <Link
                             to="/dashboard"
-                            className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/dashboard' || location.pathname === '/' ? 'text-primary' : 'text-muted-foreground'
+                            className={`text-xs sm:text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/dashboard' || location.pathname === '/' ? 'text-primary' : 'text-muted-foreground'
                                 }`}
                         >
                             Сотрудники
                         </Link>
                         <Link
                             to="/tariffs"
-                            className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/tariffs' ? 'text-primary' : 'text-muted-foreground'
+                            className={`text-xs sm:text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/tariffs' ? 'text-primary' : 'text-muted-foreground'
                                 }`}
                         >
                             Тарифы
                         </Link>
 
-                        <div className="h-6 w-px bg-border mx-2 hidden sm:block"></div>
+                        <div className="h-6 w-px bg-border mx-1 sm:mx-2 hidden sm:block"></div>
 
                         {isAuthenticated ? (
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3 sm:gap-4">
                                 <span className="hidden md:inline text-xs text-muted-foreground">
                                     Остаток: <span className="font-semibold text-foreground">{subscription?.cards_remaining ?? 0}</span>
                                 </span>
                                 <button
                                     onClick={() => setIsSettingsModalOpen(true)}
-                                    className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2"
+                                    className="text-xs sm:text-sm font-medium hover:text-primary transition-colors flex items-center gap-1.5 sm:gap-2"
                                 >
-                                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted">
+                                    <span className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-muted">
                                         {userEmail?.[0]?.toUpperCase() || "U"}
                                     </span>
                                     <span className="hidden sm:inline-block">Кабинет</span>
                                 </button>
-                                <button onClick={logout} className="text-sm font-medium text-muted-foreground hover:text-destructive transition-colors">
+                                <button onClick={logout} className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-destructive transition-colors">
                                     Выйти
                                 </button>
                             </div>
                         ) : (
                             <button
                                 onClick={() => setIsLoginModalOpen(true)}
-                                className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                                className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors"
                             >
                                 Войти
                             </button>
@@ -123,7 +123,7 @@ export default function Layout() {
                 </div>
             </header>
 
-            <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+            <main className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-6 lg:p-8">
                 <Outlet />
             </main>
 
