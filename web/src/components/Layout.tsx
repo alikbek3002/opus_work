@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { BadgePercent, Megaphone } from 'lucide-react';
+import { BadgePercent, Megaphone, Users, CreditCard, LogOut, LogIn } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../hooks/useTariffs';
 import LoginModal from './LoginModal';
@@ -78,17 +78,19 @@ export default function Layout() {
                     <nav className="flex items-center gap-3 sm:gap-6">
                         <Link
                             to="/dashboard"
-                            className={`text-xs sm:text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/dashboard' || location.pathname === '/' ? 'text-primary' : 'text-muted-foreground'
+                            className={`flex items-center gap-2 text-xs sm:text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/dashboard' || location.pathname === '/' ? 'text-primary' : 'text-muted-foreground'
                                 }`}
                         >
-                            Сотрудники
+                            <Users strokeWidth={2.5} className="w-4 h-4" />
+                            <span className="hidden sm:inline-block">Сотрудники</span>
                         </Link>
                         <Link
                             to="/tariffs"
-                            className={`text-xs sm:text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/tariffs' ? 'text-primary' : 'text-muted-foreground'
+                            className={`flex items-center gap-2 text-xs sm:text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/tariffs' ? 'text-primary' : 'text-muted-foreground'
                                 }`}
                         >
-                            Тарифы
+                            <CreditCard strokeWidth={2.5} className="w-4 h-4" />
+                            <span className="hidden sm:inline-block">Тарифы</span>
                         </Link>
 
                         <div className="h-6 w-px bg-border mx-1 sm:mx-2 hidden sm:block"></div>
@@ -107,15 +109,17 @@ export default function Layout() {
                                     </span>
                                     <span className="hidden sm:inline-block">Кабинет</span>
                                 </button>
-                                <button onClick={logout} className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-destructive transition-colors">
-                                    Выйти
+                                <button onClick={logout} className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-destructive transition-colors">
+                                    <LogOut strokeWidth={2.5} className="w-4 h-4" />
+                                    <span className="hidden sm:inline-block">Выйти</span>
                                 </button>
                             </div>
                         ) : (
                             <button
                                 onClick={() => setIsLoginModalOpen(true)}
-                                className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors"
+                                className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors"
                             >
+                                <LogIn strokeWidth={2.5} className="w-4 h-4" />
                                 Войти
                             </button>
                         )}
