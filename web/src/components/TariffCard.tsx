@@ -10,7 +10,15 @@ interface Props {
 }
 
 export default function TariffCard({ tariff, isPopular, onSelect }: Props) {
-    const periodLabel = tariff.period === 'week' ? 'Неделя' : 'Месяц';
+    const periodLabel = tariff.period === 'day'
+        ? 'День'
+        : tariff.period === 'week'
+            ? 'Неделя'
+            : 'Месяц';
+
+    const durationLabel = tariff.period === 'day'
+        ? '1 день'
+        : `1 ${periodLabel.toLowerCase()}`;
 
     return (
         <PricingCard.Card className="flex flex-col h-full">
@@ -28,7 +36,7 @@ export default function TariffCard({ tariff, isPopular, onSelect }: Props) {
                 <PricingCard.Price>
                     <PricingCard.MainPrice>{tariff.price.toLocaleString()}</PricingCard.MainPrice>
                     <span className="text-xl font-bold ml-1">сом</span>
-                    <PricingCard.Period>/{periodLabel.toLowerCase()}</PricingCard.Period>
+                    <PricingCard.Period>/{tariff.period === 'day' ? 'день' : periodLabel.toLowerCase()}</PricingCard.Period>
                 </PricingCard.Price>
 
                 <div className="mt-4 flex-grow">
@@ -56,7 +64,7 @@ export default function TariffCard({ tariff, isPopular, onSelect }: Props) {
                     </PricingCard.ListItem>
                     <PricingCard.ListItem>
                         <Clock className="text-primary h-5 w-5 shrink-0" aria-hidden="true" />
-                        <span>Период действия: <strong>1 {periodLabel.toLowerCase()}</strong></span>
+                        <span>Период действия: <strong>{durationLabel}</strong></span>
                     </PricingCard.ListItem>
                     <PricingCard.ListItem>
                         <CheckCircle2 className="text-primary h-5 w-5 shrink-0" aria-hidden="true" />

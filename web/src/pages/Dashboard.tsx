@@ -94,7 +94,7 @@ export default function Dashboard() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Кандидаты</h1>
-                    <p className="text-muted-foreground mt-1">Найдите нужного сотрудника за 15 минут</p>
+                    <p className="text-muted-foreground mt-1">Найдите нужного кандидата за 15 минут</p>
                 </div>
             </div>
 

@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS employers (
 CREATE TABLE IF NOT EXISTS tariff_plans (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,               -- «Неделя», «Месяц»
-    period TEXT NOT NULL CHECK (period IN ('week', 'month')),
+    period TEXT NOT NULL CHECK (period IN ('day', 'week', 'month')),
     card_limit INTEGER NOT NULL,       -- Лимит просмотров карточек
     price INTEGER NOT NULL,            -- Цена в сомах
     description TEXT,
@@ -162,6 +162,16 @@ CREATE POLICY "payments_select_own" ON payments
 -- ============================================
 
 INSERT INTO tariff_plans (name, period, card_limit, price, description, is_active)
+SELECT '1 день', 'day', 3, 490, '3 контакта на 1 день', TRUE
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM tariff_plans
+    WHERE period = 'day'
+      AND card_limit = 3
+      AND price = 490
+      AND is_active = TRUE
+)
+UNION ALL
 SELECT 'Неделя', 'week', 25, 1900, '25 контактов, до 15 в день', TRUE
 WHERE NOT EXISTS (
     SELECT 1

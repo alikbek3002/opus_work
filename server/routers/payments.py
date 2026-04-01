@@ -288,7 +288,11 @@ async def payment_callback(
         if not tariff:
             raise HTTPException(status_code=502, detail="Тариф платежа не найден")
 
-        period_days = 7 if tariff["period"] == "week" else 30
+        period_days = {
+            "day": 1,
+            "week": 7,
+            "month": 30,
+        }.get(tariff["period"], 30)
         starts_at = datetime.now(timezone.utc)
         expires_at = starts_at + timedelta(days=period_days)
 

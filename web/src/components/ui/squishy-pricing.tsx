@@ -21,6 +21,12 @@ interface PricingCardProps {
 
 export const SquishyPricing = ({ tariffs, onSelect, isPopularIndex = 1 }: PricingProps) => {
   const getThemeByTariff = (tariff: TariffPlan, index: number) => {
+    if (tariff.period === "day") {
+      return {
+        bgColor: "bg-amber-500 dark:bg-amber-600",
+        bgComponent: BGComponent3,
+      };
+    }
     if (tariff.period === "week") {
       return {
         bgColor: "bg-emerald-500 dark:bg-emerald-600",
@@ -67,7 +73,7 @@ export const SquishyPricing = ({ tariffs, onSelect, isPopularIndex = 1 }: Pricin
               description={
                 tariff.description
                   ? tariff.description
-                  : `Доступ к базе проверенных сотрудников. Лимит карточек: ${tariff.card_limit}`
+                  : `Доступ к базе проверенных кандидатов. Лимит карточек: ${tariff.card_limit}`
               }
               cta="Выбрать тариф"
               background={bgColor}

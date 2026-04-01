@@ -6,7 +6,7 @@ from database import supabase
 from middleware.auth import get_current_user
 from models.schemas import EmployeeCard, EmployeeFullProfile, ViewedEmployeeHistoryItem
 
-router = APIRouter(prefix="/api/employees", tags=["Сотрудники"])
+router = APIRouter(prefix="/api/employees", tags=["Кандидаты"])
 
 
 def normalize_filter_values(values: Optional[List[str]]) -> List[str]:
@@ -147,7 +147,7 @@ async def view_employee(
     if not employee:
         raise HTTPException(
             status_code=404,
-            detail="Сотрудник не найден или анкета была обновлена. Обновите список сотрудников."
+            detail="Кандидат не найден или анкета была обновлена. Обновите список кандидатов."
         )
 
     if existing_view.data:

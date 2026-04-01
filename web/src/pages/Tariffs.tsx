@@ -1,13 +1,16 @@
 import { useTariffs, useSubscription, useCreatePayment } from '../hooks/useTariffs';
 import { SquishyPricing } from '../components/ui/squishy-pricing';
 import { useAuth } from '../hooks/useAuth';
+import { useSearchParams } from 'react-router-dom';
 
 export default function Tariffs() {
     const { isAuthenticated } = useAuth();
+    const [searchParams] = useSearchParams();
 
     const { data: tariffs = [], isPending, isError, error } = useTariffs();
     const { data: subscription } = useSubscription();
     const paymentMutation = useCreatePayment();
+    const paymentSuccess = searchParams.get('payment') === 'success';
 
     const handleSelectTariff = async (tariffId: string) => {
         if (!isAuthenticated) {
@@ -27,10 +30,10 @@ export default function Tariffs() {
     };
 
     const orderedTariffs = (tariffs as any[])
-        .filter((t) => t.period === 'week' || t.period === 'month')
+        .filter((t) => t.period === 'day' || t.period === 'week' || t.period === 'month')
         .sort((a, b) => {
-            const order = { week: 0, month: 1 } as const;
-            return order[a.period as 'week' | 'month'] - order[b.period as 'week' | 'month'];
+            const order = { day: 0, week: 1, month: 2 } as const;
+            return order[a.period as 'day' | 'week' | 'month'] - order[b.period as 'day' | 'week' | 'month'];
         });
 
     if (isPending) {
@@ -50,7 +53,7 @@ export default function Tariffs() {
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Тарифные планы</h1>
                 <p className="text-muted-foreground text-base sm:text-lg">
-                    Найдите нужного сотрудника за 15 минут
+                    Найдите нужного кандидата за 15 минут
                 </p>
 
                 {isAuthenticated && subscription && (
@@ -60,6 +63,12 @@ export default function Tariffs() {
                     </div>
                 )}
             </div>
+
+            {paymentSuccess && (
+                <div className="bg-primary/10 text-primary border border-primary/30 px-4 py-3 rounded-lg font-medium max-w-2xl mx-auto text-center">
+                    Подписка активирована. По акции для первых зарегистрированных осталось 28 тарифов со скидкой.
+                </div>
+            )}
 
             {isError && (
                 <div className="bg-destructive/15 text-destructive border border-destructive/30 px-4 py-3 rounded-lg font-medium max-w-md mx-auto">

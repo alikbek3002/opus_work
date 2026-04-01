@@ -33,6 +33,13 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
         return digits ? `https://wa.me/${digits}` : null;
     };
 
+    const formatTariffPeriod = (period?: string) => {
+        if (period === "day") return "1 день";
+        if (period === "week") return "Неделя";
+        if (period === "month") return "Месяц";
+        return "Не указан";
+    };
+
     const handlePasswordReset = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
@@ -56,7 +63,7 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                 <DialogHeader>
                     <DialogTitle>Личный кабинет</DialogTitle>
                     <DialogDescription>
-                        Управление вашим профилем, подпиской и историей открытых сотрудников.
+                        Управление вашим профилем, подпиской и историей открытых кандидатов.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -79,9 +86,7 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Период:</span>
                                         <span className="font-medium">
-                                            {subscription.tariff_plans
-                                                ? subscription.tariff_plans.period === "month" ? "Месяц" : "Неделя"
-                                                : "Не указан"}
+                                            {formatTariffPeriod(subscription.tariff_plans?.period)}
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-sm">
@@ -97,7 +102,7 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                                 </div>
                             ) : (
                                 <p className="text-sm text-balance text-muted-foreground">
-                                    У вас пока нет активной подписки. Перейдите в раздел "Тарифы", чтобы начать поиск сотрудников.
+                                    У вас пока нет активной подписки. Перейдите в раздел "Тарифы", чтобы начать поиск кандидатов.
                                 </p>
                             )}
                         </div>
@@ -136,9 +141,9 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                     <div className="rounded-lg border p-4">
                         <div className="mb-4 flex items-center justify-between gap-4">
                             <div>
-                                <h4 className="text-sm font-semibold">История открытых сотрудников</h4>
+                                <h4 className="text-sm font-semibold">История открытых кандидатов</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    Здесь сохраняются все сотрудники, которых вы уже открывали.
+                                    Здесь сохраняются все кандидаты, которых вы уже открывали.
                                 </p>
                             </div>
                             <div className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
@@ -154,7 +159,7 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                             </div>
                         ) : viewedHistory.length === 0 ? (
                             <div className="flex min-h-[240px] items-center justify-center rounded-2xl border border-dashed bg-muted/20 px-6 text-center text-sm text-muted-foreground">
-                                Пока нет открытых сотрудников. Когда откроете первую анкету, история появится здесь.
+                                Пока нет открытых кандидатов. Когда откроете первую анкету, история появится здесь.
                             </div>
                         ) : (
                             <div className="max-h-[58vh] space-y-3 overflow-y-auto pr-1">
@@ -214,7 +219,7 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                                                             </Button>
                                                         ) : employee.phone_number ? (
                                                             <span className="text-xs text-muted-foreground">
-                                                                У сотрудника нет WhatsApp. Доступен обычный номер: {employee.phone_number}
+                                                                У кандидата нет WhatsApp. Доступен обычный номер: {employee.phone_number}
                                                             </span>
                                                         ) : (
                                                             <span className="text-xs text-muted-foreground">

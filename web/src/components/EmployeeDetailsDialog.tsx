@@ -112,7 +112,7 @@ export default function EmployeeDetailsDialog({
                                         alt={employee.full_name}
                                         className="h-full w-full object-cover"
                                         onError={(e) => {
-                                            (e.currentTarget.parentElement as HTMLElement).innerHTML = `<div class="flex h-full w-full items-center justify-center text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-30"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></div>`
+                                            (e.currentTarget.parentElement as HTMLElement).innerHTML = `<div class="flex h-full w-full items-center justify-center overflow-hidden bg-white p-2"><img src="/logo.png" alt="Opus" class="h-full w-full object-contain" /></div>`
                                         }}
                                     />
                                 </div>
@@ -256,7 +256,7 @@ export default function EmployeeDetailsDialog({
                                 </div>
                                 {unlockedProfile ? (
                                     <div className="space-y-2 text-sm text-muted-foreground">
-                                        <p className="font-medium text-primary">Контакты открыты. Можно написать сотруднику напрямую.</p>
+                                        <p className="font-medium text-primary">Контакты открыты. Можно написать кандидату напрямую.</p>
                                         <div className="space-y-1.5 text-xs">
                                             <p><strong className="text-foreground font-medium">Telegram:</strong> {telegramUsername ? `@${telegramUsername}` : _telegramIdFull ? `ID ${_telegramIdFull}` : "Не указан"}</p>
                                             <p><strong className="text-foreground font-medium">Номер:</strong> {displayValue(unlockedProfile?.phone_number)}</p>
@@ -297,7 +297,7 @@ export default function EmployeeDetailsDialog({
                                                 {unlockedProfile.phone_number}
                                             </div>
                                             <p className="mt-1.5 text-center text-xs text-muted-foreground leading-tight">
-                                                У сотрудника нет WhatsApp. Только звонки/смс.
+                                                У кандидата нет WhatsApp. Только звонки/смс.
                                             </p>
                                         </div>
                                     ) : null}
@@ -315,7 +315,7 @@ export default function EmployeeDetailsDialog({
 
                         {!isAuthenticated ? (
                             <p className="mt-4 text-xs font-medium text-center text-muted-foreground bg-muted/50 py-2 rounded-lg">
-                                Чтобы открыть контакт сотрудника, необходимо авторизоваться на платформе.
+                                Чтобы открыть контакт кандидата, необходимо авторизоваться на платформе.
                             </p>
                         ) : null}
 

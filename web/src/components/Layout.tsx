@@ -8,6 +8,7 @@ import SettingsModal from './SettingsModal';
 import { InfiniteSlider } from './ui/infinite-slider';
 
 const tariffAnnouncements = [
+    'Тариф 1 день: 3 контакта — 490 сом',
     'Тариф Неделя: 25 контактов, до 15 в день — 1900 сом',
     'Тариф Месяц: 80 контактов, до 20 в день — 4900 сом',
     'Оплата проходит через Finik, ссылка формируется автоматически',

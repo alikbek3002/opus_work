@@ -28,7 +28,7 @@ export const EmployeeCard = React.forwardRef<HTMLDivElement, EmployeeCardProps>(
                                     alt={employee.full_name}
                                     className="h-full w-full object-cover"
                                     onError={(e) => {
-                                        (e.currentTarget.parentElement as HTMLElement).innerHTML = `<div class="flex h-full w-full items-center justify-center text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-30"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></div>`
+                                        (e.currentTarget.parentElement as HTMLElement).innerHTML = `<div class="flex h-full w-full items-center justify-center overflow-hidden bg-white p-2"><img src="/logo.png" alt="Opus" class="h-full w-full object-contain" /></div>`
                                     }}
                                 />
                             </div>
