@@ -1,0 +1,11 @@
+-- Приводим активные тарифы к каноническому набору.
+-- Это нужно для продовой базы, где могли остаться старые тарифы с неверной ценой, например по 1 сому.
+
+UPDATE public.tariff_plans
+SET is_active = FALSE;
+
+INSERT INTO public.tariff_plans (name, period, card_limit, price, description, is_active)
+VALUES
+    ('1 день', 'day', 3, 490, '3 контакта на 1 день', TRUE),
+    ('Неделя', 'week', 25, 1900, '25 контактов, до 15 в день', TRUE),
+    ('Месяц', 'month', 80, 4900, '80 контактов, до 20 в день', TRUE);

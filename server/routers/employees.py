@@ -5,6 +5,7 @@ from typing import List, Optional
 from database import supabase
 from middleware.auth import get_current_user
 from models.schemas import EmployeeCard, EmployeeFullProfile, ViewedEmployeeHistoryItem
+from services.subscription_limits import get_daily_limit, get_daily_views_used
 
 router = APIRouter(prefix="/api/employees", tags=["Кандидаты"])
 
@@ -175,6 +176,29 @@ async def view_employee(
         )
 
     sub = subscription.data[0]
+    daily_limit = get_daily_limit((sub.get("tariff_plans") or {}).get("period"))
+    if daily_limit is None:
+        tariff_response = (
+            supabase.table("tariff_plans")
+            .select("period")
+            .eq("id", sub["tariff_id"])
+            .limit(1)
+            .execute()
+        )
+        tariff_period = tariff_response.data[0]["period"] if tariff_response.data else None
+        daily_limit = get_daily_limit(tariff_period)
+
+    if daily_limit is not None:
+        daily_views_used = get_daily_views_used(
+            employer_id=employer_id,
+            subscription_id=sub["id"],
+        )
+        daily_remaining = daily_limit - daily_views_used
+        if daily_remaining <= 0:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Вы достигли дневного лимита просмотров: {daily_limit} в день. Попробуйте снова завтра.",
+            )
 
     # 4. Списываем карточку из подписки
     new_remaining = sub["cards_remaining"] - 1

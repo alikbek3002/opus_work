@@ -31,6 +31,8 @@ interface EmployeeDetailsDialogProps {
     isUnlocking: boolean;
     isViewed: boolean;
     remainingCards: number | null;
+    dailyRemaining?: number | null;
+    dailyLimit?: number | null;
     unlockError?: string | null;
     onRequestLogin: () => void;
     onUnlock: (employeeId: string) => void | Promise<void>;
@@ -63,6 +65,8 @@ export default function EmployeeDetailsDialog({
     isUnlocking,
     isViewed,
     remainingCards,
+    dailyRemaining,
+    dailyLimit,
     unlockError,
     onRequestLogin,
     onUnlock,
@@ -89,7 +93,9 @@ export default function EmployeeDetailsDialog({
         ? "Контакт уже был открыт раньше и повторно не списывается."
         : remainingCards === null
             ? "Тариф пока не активирован"
-            : `Осталось открытий: ${remainingCards}`;
+            : dailyLimit
+                ? `Осталось открытий: ${remainingCards}. На сегодня: ${dailyRemaining ?? 0} из ${dailyLimit}.`
+                : `Осталось открытий: ${remainingCards}`;
 
     const handlePrimaryAction = () => {
         if (!isAuthenticated) {

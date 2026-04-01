@@ -57,9 +57,12 @@ export default function Tariffs() {
                 </p>
 
                 {isAuthenticated && subscription && (
-                    <div className="inline-flex items-center gap-3 bg-primary/10 text-primary px-4 py-2 rounded-full font-medium text-sm border border-primary/20">
+                    <div className="inline-flex flex-wrap items-center justify-center gap-3 bg-primary/10 text-primary px-4 py-2 rounded-full font-medium text-sm border border-primary/20">
                         <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
-                        Активная подписка: <strong>{subscription.cards_remaining} карточек</strong>
+                        <span>Активная подписка: <strong>{subscription.cards_remaining} карточек</strong></span>
+                        {subscription.daily_limit ? (
+                            <span>Сегодня: <strong>{subscription.daily_views_remaining ?? 0}/{subscription.daily_limit}</strong></span>
+                        ) : null}
                     </div>
                 )}
             </div>

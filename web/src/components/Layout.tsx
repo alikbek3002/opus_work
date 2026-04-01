@@ -100,6 +100,11 @@ export default function Layout() {
                             <div className="flex items-center gap-3 sm:gap-4">
                                 <span className="hidden md:inline text-xs text-muted-foreground">
                                     Остаток: <span className="font-semibold text-foreground">{subscription?.cards_remaining ?? 0}</span>
+                                    {subscription?.daily_limit ? (
+                                        <>
+                                            {" "}• Сегодня: <span className="font-semibold text-foreground">{subscription.daily_views_remaining ?? 0}/{subscription.daily_limit}</span>
+                                        </>
+                                    ) : null}
                                 </span>
                                 <button
                                     onClick={() => setIsSettingsModalOpen(true)}

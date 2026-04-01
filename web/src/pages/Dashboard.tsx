@@ -176,6 +176,8 @@ export default function Dashboard() {
                 isViewed={selectedEmployee ? viewedIds.has(selectedEmployee.id) : false}
                 isUnlocking={viewMutation.isPending && viewMutation.variables === selectedEmployee?.id}
                 remainingCards={subscription?.cards_remaining ?? null}
+                dailyRemaining={subscription?.daily_views_remaining ?? null}
+                dailyLimit={subscription?.daily_limit ?? null}
                 unlockError={unlockError}
                 onRequestLogin={() => window.dispatchEvent(new Event('openLoginModal'))}
                 onUnlock={handleViewEmployee}

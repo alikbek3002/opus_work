@@ -209,6 +209,9 @@ export interface Subscription {
     id: string;
     tariff_id: string;
     cards_remaining: number;
+    daily_limit?: number | null;
+    daily_views_used?: number | null;
+    daily_views_remaining?: number | null;
     starts_at: string;
     expires_at: string;
     is_active: boolean;

@@ -93,6 +93,14 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                                         <span className="text-muted-foreground">Осталось просмотров:</span>
                                         <span className="font-medium">{subscription.cards_remaining}</span>
                                     </div>
+                                    {subscription.daily_limit ? (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-muted-foreground">Осталось на сегодня:</span>
+                                            <span className="font-medium">
+                                                {subscription.daily_views_remaining ?? 0} из {subscription.daily_limit}
+                                            </span>
+                                        </div>
+                                    ) : null}
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Действует до:</span>
                                         <span className="font-medium">

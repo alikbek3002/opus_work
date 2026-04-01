@@ -89,6 +89,9 @@ class Subscription(BaseModel):
     id: str
     tariff_id: str
     cards_remaining: int
+    daily_limit: Optional[int] = None
+    daily_views_used: Optional[int] = None
+    daily_views_remaining: Optional[int] = None
     starts_at: datetime
     expires_at: datetime
     is_active: bool

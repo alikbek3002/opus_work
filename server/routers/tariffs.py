@@ -8,6 +8,7 @@ from database import supabase
 from middleware.auth import get_current_user
 from models.schemas import TariffPlan, SubscriptionDetails
 from services.email import email_is_configured, send_email
+from services.subscription_limits import enrich_subscription
 
 router = APIRouter(prefix="/api/tariffs", tags=["Тарифные планы"])
 
@@ -41,7 +42,7 @@ async def get_subscription(current_user: dict = Depends(get_current_user)):
     )
 
     if response.data:
-        return response.data[0]
+        return enrich_subscription(response.data[0])
     return None
 
 
