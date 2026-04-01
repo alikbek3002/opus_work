@@ -8,6 +8,7 @@ class Settings:
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
     SUPABASE_KEY: str = os.getenv("SUPABASE_SERVICE_KEY", "")
     SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "")
+    RAILWAY_DATABASE_URL: str = os.getenv("RAILWAY_DATABASE_URL", "")
     JWT_SECRET: str = os.getenv("JWT_SECRET", "your-jwt-secret-key")
     FENIK_PAY_API_KEY: str = os.getenv("FENIK_PAY_API_KEY", "")
     FENIK_PAY_MERCHANT_ID: str = os.getenv("FENIK_PAY_MERCHANT_ID", "")

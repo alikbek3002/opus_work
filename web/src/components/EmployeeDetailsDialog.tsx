@@ -18,7 +18,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { type EmployeeCard, type EmployeeFullProfile } from "@/lib/api";
+import { getPhotoUrl, type EmployeeCard, type EmployeeFullProfile } from "@/lib/api";
 
 interface EmployeeDetailsDialogProps {
     open: boolean;
@@ -96,14 +96,29 @@ export default function EmployeeDetailsDialog({
             <DialogContent className="sm:max-w-3xl w-[95vw] sm:w-full p-0 overflow-hidden border shadow-xl rounded-xl bg-background">
                 <DialogHeader className="px-4 pt-6 pb-3 sm:px-8 sm:pt-8 sm:pb-4 relative z-10 border-b border-border/40 bg-muted/10">
                     <div className="flex items-start justify-between gap-4">
-                        <div>
-                            <DialogTitle className="flex items-center gap-2 text-2xl sm:text-3xl font-bold tracking-tight">
-                                {employee.full_name}
-                                {employee.is_verified ? <BadgeCheck className="h-6 w-6 text-emerald-500" /> : null}
-                            </DialogTitle>
-                            <DialogDescription className="mt-2 text-base font-medium text-primary/80">
-                                {employee.specializations || "Специализация уточняется"}
-                            </DialogDescription>
+                        <div className="flex items-center gap-4">
+                            {unlockedProfile?.telegram_id ? (
+                                <div className="relative h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-full border-2 border-primary/20 bg-muted shrink-0 shadow-sm">
+                                    <img
+                                        src={getPhotoUrl(unlockedProfile.telegram_id)}
+                                        alt={employee.full_name}
+                                        className="h-full w-full object-cover"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full border-2 border-primary/20 bg-muted text-muted-foreground shrink-0 shadow-sm">
+                                    <UserRound className="h-8 w-8 sm:h-10 sm:w-10 opacity-30" />
+                                </div>
+                            )}
+                            <div>
+                                <DialogTitle className="flex items-center gap-2 text-2xl sm:text-3xl font-bold tracking-tight">
+                                    {employee.full_name}
+                                    {employee.is_verified ? <BadgeCheck className="h-6 w-6 text-emerald-500" /> : null}
+                                </DialogTitle>
+                                <DialogDescription className="mt-2 text-base font-medium text-primary/80">
+                                    {employee.specializations || "Специализация уточняется"}
+                                </DialogDescription>
+                            </div>
                         </div>
                     </div>
                 </DialogHeader>

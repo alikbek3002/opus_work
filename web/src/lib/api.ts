@@ -114,6 +114,13 @@ export const api = {
         }),
 };
 
+/**
+ * Генерирует URL для получения фото сотрудника
+ */
+export const getPhotoUrl = (telegramId: number) => {
+    return `${API_BASE}/photos/${telegramId}`;
+};
+
 // ============================================
 // Types
 // ============================================

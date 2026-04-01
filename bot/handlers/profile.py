@@ -124,6 +124,15 @@ async def confirm_delete_profile(update: Update, context: ContextTypes.DEFAULT_T
     await query.answer()
 
     delete_employee(query.from_user.id)
+    
+    # Пытаемся удалить фото из Railway (даже если его там нет, ошибка не прервёт процесс, если обработать или просто вызвать)
+    try:
+        from photo_storage import delete_photo
+        delete_photo(query.from_user.id)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Не удалось удалить фото: %s", e)
+        
     context.user_data.clear()
 
     reply_markup = InlineKeyboardMarkup(

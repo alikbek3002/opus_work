@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 def main():
     """Запуск бота."""
     settings.validate()
+    
+    # Инициализация хранилища фото
+    from photo_storage import ensure_photos_table
+    ensure_photos_table()
 
     app = ApplicationBuilder().token(settings.BOT_TOKEN).build()
 

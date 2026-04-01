@@ -310,7 +310,7 @@ async def gender_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 4/12: Пришлите фото (можно обычное селфи):",
+        "Шаг 4/12: Сфотографируйтесь для анкеты, чтобы было четко видно ваше лицо (можно сделать обычное селфи прямо сейчас):",
     )
     return PHOTO
 
@@ -707,7 +707,20 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
     }
 
     try:
+        # Скачиваем фото из Telegram и сохраняем в Railway
+        if data.get("photo_file_id"):
+            from photo_storage import save_photo
+            
+            # Получаем файл из серверов Telegram
+            file = await context.bot.get_file(data["photo_file_id"])
+            photo_bytes = await file.download_as_bytearray()
+            
+            # Сохраняем в Railway PostgreSQL
+            save_photo(query.from_user.id, photo_bytes)
+            
+        # Сохраняем остальные данные в Supabase
         save_employee(employee_data)
+        
         await query.edit_message_text(
             "✅ *Анкета отправлена!*\n\n"
             "Ваш профиль успешно сохранён.\n"

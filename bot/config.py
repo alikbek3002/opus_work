@@ -8,6 +8,7 @@ class Settings:
     BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
     SUPABASE_KEY: str = os.getenv("SUPABASE_SERVICE_KEY", "")
+    RAILWAY_DATABASE_URL: str = os.getenv("RAILWAY_DATABASE_URL", "")
 
     def validate(self):
         if not self.BOT_TOKEN:
@@ -16,6 +17,8 @@ class Settings:
             raise ValueError("SUPABASE_URL не установлен в .env")
         if not self.SUPABASE_KEY:
             raise ValueError("SUPABASE_SERVICE_KEY не установлен в .env")
+        if not self.RAILWAY_DATABASE_URL:
+            raise ValueError("RAILWAY_DATABASE_URL не установлен в .env")
 
 
 settings = Settings()
