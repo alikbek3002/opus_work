@@ -42,6 +42,18 @@ def _normalize_pem(value: str) -> str:
     return value.strip().replace("\\n", "\n")
 
 
+def _decode_base64_pem(value: Optional[str], label: str) -> Optional[str]:
+    if not value:
+        return None
+
+    try:
+        decoded = base64.b64decode(value).decode("utf-8").strip()
+    except (binascii.Error, UnicodeDecodeError) as exc:
+        raise FinikConfigError(f"Некорректный base64 для {label}") from exc
+
+    return _normalize_pem(decoded)
+
+
 def _read_pem_value(value: Optional[str], path: Optional[str], label: str) -> str:
     if value:
         return _normalize_pem(value)
@@ -56,7 +68,10 @@ def _read_pem_value(value: Optional[str], path: Optional[str], label: str) -> st
 
 
 def _load_private_key():
-    private_key_value = _read_pem_value(
+    private_key_value = _decode_base64_pem(
+        settings.FINIK_PRIVATE_KEY_BASE64,
+        "приватного ключа Finik",
+    ) or _read_pem_value(
         settings.FINIK_PRIVATE_KEY,
         settings.FINIK_PRIVATE_KEY_PATH,
         "приватный ключ Finik",
@@ -71,10 +86,17 @@ def _load_private_key():
 
 
 def _load_public_key():
-    if not settings.FINIK_PUBLIC_KEY and not settings.FINIK_PUBLIC_KEY_PATH:
+    if (
+        not settings.FINIK_PUBLIC_KEY
+        and not settings.FINIK_PUBLIC_KEY_BASE64
+        and not settings.FINIK_PUBLIC_KEY_PATH
+    ):
         return None
 
-    public_key_value = _read_pem_value(
+    public_key_value = _decode_base64_pem(
+        settings.FINIK_PUBLIC_KEY_BASE64,
+        "публичного ключа Finik",
+    ) or _read_pem_value(
         settings.FINIK_PUBLIC_KEY,
         settings.FINIK_PUBLIC_KEY_PATH,
         "публичный ключ Finik",
@@ -86,7 +108,11 @@ def _load_public_key():
 
 
 def is_webhook_verification_configured() -> bool:
-    return bool(settings.FINIK_PUBLIC_KEY or settings.FINIK_PUBLIC_KEY_PATH)
+    return bool(
+        settings.FINIK_PUBLIC_KEY
+        or settings.FINIK_PUBLIC_KEY_BASE64
+        or settings.FINIK_PUBLIC_KEY_PATH
+    )
 
 
 def build_webhook_url(base_url: str, payment_id: str) -> str:

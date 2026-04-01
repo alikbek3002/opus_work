@@ -37,12 +37,24 @@ class Settings:
     )
     FINIK_ACCOUNT_ID: str = _getenv("FINIK_ACCOUNT_ID", "FENIK_ACCOUNT_ID")
     FINIK_PRIVATE_KEY: str = _getenv("FINIK_PRIVATE_KEY", "FENIK_PRIVATE_KEY")
+    FINIK_PRIVATE_KEY_BASE64: str = _getenv(
+        "FINIK_PRIVATE_KEY_BASE64",
+        "FINIK_PRIVATE_KEY_B64",
+        "FENIK_PRIVATE_KEY_BASE64",
+        "FENIK_PRIVATE_KEY_B64",
+    )
     FINIK_PRIVATE_KEY_PATH: str = _getenv(
         "FINIK_PRIVATE_KEY_PATH",
         "FENIK_PRIVATE_KEY_PATH",
         default=_resolve_default_key_path("finik_private.pem"),
     )
     FINIK_PUBLIC_KEY: str = _getenv("FINIK_PUBLIC_KEY", "FENIK_PUBLIC_KEY")
+    FINIK_PUBLIC_KEY_BASE64: str = _getenv(
+        "FINIK_PUBLIC_KEY_BASE64",
+        "FINIK_PUBLIC_KEY_B64",
+        "FENIK_PUBLIC_KEY_BASE64",
+        "FENIK_PUBLIC_KEY_B64",
+    )
     FINIK_PUBLIC_KEY_PATH: str = _getenv(
         "FINIK_PUBLIC_KEY_PATH",
         "FENIK_PUBLIC_KEY_PATH",
