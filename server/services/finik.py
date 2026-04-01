@@ -373,7 +373,10 @@ def create_payment_link(
             raise FinikRequestError("Finik не вернул ссылку на оплату")
     else:
         error_message = _extract_finik_error(response, response_json)
-        raise FinikRequestError(f"Finik отклонил запрос: {error_message}")
+        raise FinikRequestError(
+            f"Finik отклонил запрос: {error_message}",
+            status_code=response.status_code,
+        )
 
     return FinikCreatePaymentResult(
         payment_url=payment_url,
