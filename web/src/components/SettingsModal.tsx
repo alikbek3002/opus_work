@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import { useSubscription } from "@/hooks/useTariffs";
 import { useViewedHistory } from "@/hooks/useEmployees";
+import VerificationBadge from "@/components/VerificationBadge";
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -174,11 +175,10 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                                                         <div>
                                                             <div className="flex items-center gap-2">
                                                                 <h5 className="font-semibold">{employee.full_name}</h5>
-                                                                {employee.is_verified ? (
-                                                                    <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600">
-                                                                        Проверен
-                                                                    </span>
-                                                                ) : null}
+                                                                <VerificationBadge
+                                                                    status={employee.verification_status}
+                                                                    isVerified={employee.is_verified}
+                                                                />
                                                             </div>
                                                             <p className="mt-1 text-sm text-muted-foreground">
                                                                 {[employee.specializations, employee.district].filter(Boolean).join(" • ")}

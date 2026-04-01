@@ -773,6 +773,7 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
         "phone_number": data["phone_number"],
         "has_whatsapp": data["has_whatsapp"],
         "is_verified": False,
+        "verification_status": "pending",
     }
 
     try:
@@ -788,11 +789,15 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
             save_photo(query.from_user.id, photo_bytes)
             
         # Сохраняем остальные данные в Supabase
-        save_employee(employee_data)
+        saved_employee = save_employee(employee_data)
+
+        from verification_notifier import notify_new_employee
+        await notify_new_employee(saved_employee)
         
         await query.edit_message_text(
             "✅ *Анкета отправлена!*\n\n"
             "Ваш профиль успешно сохранён.\n"
+            "Сейчас анкета отправлена на ручную проверку.\n"
             "Если захотите что-то поменять после отправки,\n"
             "используйте /update: бот удалит анкету и вы сможете пройти всё заново.\n\n"
             "Команды:\n"
@@ -805,7 +810,9 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
         if "PGRST204" in error_text:
             await query.edit_message_text(
                 "❌ База данных ещё не обновлена под новую анкету.\n"
-                "Нужно применить миграцию `supabase/migrations/007_add_employee_registration_fields.sql`\n"
+                "Нужно применить миграции:\n"
+                "`supabase/migrations/007_add_employee_registration_fields.sql`\n"
+                "`supabase/migrations/009_add_employee_verification_status.sql`\n"
                 "в SQL Editor Supabase и повторить отправку."
             )
             context.user_data.clear()

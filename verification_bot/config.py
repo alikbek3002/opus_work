@@ -1,24 +1,22 @@
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
 class Settings:
-    BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
+    VERIFICATION_BOT_TOKEN: str = os.getenv("VERIFICATION_BOT_TOKEN", "")
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
     SUPABASE_KEY: str = os.getenv("SUPABASE_SERVICE_KEY", "")
-    RAILWAY_DATABASE_URL: str = os.getenv("RAILWAY_DATABASE_URL", "")
-    VERIFICATION_BOT_TOKEN: str = os.getenv("VERIFICATION_BOT_TOKEN", "")
 
     def validate(self):
-        if not self.BOT_TOKEN:
-            raise ValueError("BOT_TOKEN не установлен в .env")
+        if not self.VERIFICATION_BOT_TOKEN:
+            raise ValueError("VERIFICATION_BOT_TOKEN не установлен в .env")
         if not self.SUPABASE_URL:
             raise ValueError("SUPABASE_URL не установлен в .env")
         if not self.SUPABASE_KEY:
             raise ValueError("SUPABASE_SERVICE_KEY не установлен в .env")
-        if not self.RAILWAY_DATABASE_URL:
-            raise ValueError("RAILWAY_DATABASE_URL не установлен в .env")
+
 
 settings = Settings()

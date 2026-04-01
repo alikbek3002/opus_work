@@ -152,6 +152,9 @@ export interface EmployeeQueryParams {
     specializations?: string[];
 }
 
+export type VerificationStatus = 'pending' | 'verified' | 'rejected';
+export type ActivitySignal = 'high' | 'medium' | 'low';
+
 export interface EmployeeCard {
     id: string;
     full_name: string;
@@ -160,8 +163,13 @@ export interface EmployeeCard {
     district: string | null;
     specializations: string | null;
     experience: string | null;
+    employment_type: string | null;
     opus_experience: string | null;
     is_verified: boolean;
+    verification_status: VerificationStatus;
+    verification_decided_at: string | null;
+    activity_signal: ActivitySignal | null;
+    activity_signal_updated_at: string | null;
     contact_opens_count: number;
     telegram_id: number | null;
 }
@@ -171,10 +179,11 @@ export interface EmployeeFullProfile extends EmployeeCard {
     phone_number: string | null;
     has_whatsapp: boolean | null;
     photo_file_id: string | null;
-    employment_type: string | null;
     ready_for_weekends: boolean | null;
     about_me: string | null;
     has_recommendations: boolean | null;
+    verification_rejected_reason: string | null;
+    verified_by_telegram_id: number | null;
     created_at: string | null;
 }
 

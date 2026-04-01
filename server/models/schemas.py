@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Literal, Optional
 from datetime import datetime
 
 
@@ -29,6 +29,9 @@ class AuthResponse(BaseModel):
 
 # === Employee ===
 
+VerificationStatus = Literal["pending", "verified", "rejected"]
+ActivitySignal = Literal["high", "medium", "low"]
+
 class EmployeeCard(BaseModel):
     """Базовая карточка — видна без оплаты."""
     id: str
@@ -38,8 +41,13 @@ class EmployeeCard(BaseModel):
     district: Optional[str] = None
     specializations: Optional[str] = None
     experience: Optional[str] = None
+    employment_type: Optional[str] = None
     opus_experience: Optional[str] = None
     is_verified: bool = False
+    verification_status: VerificationStatus = "pending"
+    verification_decided_at: Optional[datetime] = None
+    activity_signal: Optional[ActivitySignal] = None
+    activity_signal_updated_at: Optional[datetime] = None
     contact_opens_count: int = 0
     telegram_id: Optional[int] = None
 
@@ -50,10 +58,11 @@ class EmployeeFullProfile(EmployeeCard):
     phone_number: Optional[str] = None
     has_whatsapp: Optional[bool] = None
     photo_file_id: Optional[str] = None
-    employment_type: Optional[str] = None
     ready_for_weekends: Optional[bool] = None
     about_me: Optional[str] = None
     has_recommendations: Optional[bool] = None
+    verification_rejected_reason: Optional[str] = None
+    verified_by_telegram_id: Optional[int] = None
     created_at: Optional[datetime] = None
 
 

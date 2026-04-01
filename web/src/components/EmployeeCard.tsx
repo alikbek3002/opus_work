@@ -1,6 +1,8 @@
 import * as React from "react";
 import { getPhotoUrl, type EmployeeCard as EmployeeCardType } from "@/lib/api";
 import { UserSearch, Eye, BriefcaseBusiness, MapPin, BadgeCheck, Clock, UserRound } from "lucide-react";
+import EmployeeActivityBadge from "@/components/EmployeeActivityBadge";
+import VerificationBadge from "@/components/VerificationBadge";
 
 interface EmployeeCardProps {
     employee: EmployeeCardType;
@@ -44,6 +46,19 @@ export const EmployeeCard = React.forwardRef<HTMLDivElement, EmployeeCardProps>(
                                 <BriefcaseBusiness className="h-4 w-4 shrink-0" />
                                 <span className="line-clamp-2">{employee.specializations || "Специализация уточняется"}</span>
                             </p>
+                            <div className="mt-2">
+                                <VerificationBadge
+                                    status={employee.verification_status}
+                                    isVerified={employee.is_verified}
+                                />
+                            </div>
+                            <EmployeeActivityBadge
+                                employmentType={employee.employment_type}
+                                activitySignal={employee.activity_signal}
+                                activitySignalUpdatedAt={employee.activity_signal_updated_at}
+                                compact
+                                className="mt-2"
+                            />
                         </div>
                     </div>
                 </div>

@@ -3,6 +3,7 @@ from html import escape
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
+from activity_signal import format_employee_activity_status
 from database import delete_employee, get_employee_by_telegram_id
 
 
@@ -43,6 +44,15 @@ def format_photo_status(photo_file_id: str | None) -> str:
     return "Загружено ✅" if photo_file_id else "Не загружено"
 
 
+def get_verification_status_text(employee: dict) -> tuple[str, str]:
+    status = employee.get("verification_status")
+    if status == "verified" or employee.get("is_verified"):
+        return "Полностью верифицирован", "✅"
+    if status == "rejected":
+        return "Отклонён модератором", "❌"
+    return "Ожидает ручной проверки", "⏳"
+
+
 async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Отображает текущий профиль пользователя."""
     telegram_id = update.effective_user.id
@@ -52,9 +62,9 @@ async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.message.reply_text("❌ Вы ещё не зарегистрированы. Напишите /start")
         return
 
-    is_verified = employee.get("is_verified", False)
-    status_emoji = "✅" if is_verified else "⏳"
-    status_text = "Подтверждён" if is_verified else "Ожидает проверки"
+    status_text, status_emoji = get_verification_status_text(employee)
+    activity_status = format_employee_activity_status(employee)
+    activity_status_text = f"{escape(activity_status)}\n" if activity_status else ""
 
     text = (
         "👤 <b>Ваш профиль</b>\n\n"
@@ -72,6 +82,7 @@ async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         f"Telegram username: {escape(format_telegram_username(employee.get('telegram_username')))}\n"
         f"Связь: {escape(format_contact_method(employee))}\n"
         f"Номер: {escape(str(employee.get('phone_number', 'Не указан')))}\n\n"
+        f"{activity_status_text}"
         f"Статус: {status_text} {status_emoji}\n\n"
         "После отправки анкеты изменения делаются через удаление и повторное заполнение."
     )

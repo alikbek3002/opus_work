@@ -19,6 +19,8 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { getPhotoUrl, type EmployeeCard, type EmployeeFullProfile } from "@/lib/api";
+import EmployeeActivityBadge from "@/components/EmployeeActivityBadge";
+import VerificationBadge, { getVerificationLabel, normalizeVerificationStatus } from "@/components/VerificationBadge";
 
 interface EmployeeDetailsDialogProps {
     open: boolean;
@@ -79,6 +81,10 @@ export default function EmployeeDetailsDialog({
             ? `tg://user?id=${_telegramIdFull}`
             : null;
     const whatsappUrl = unlockedProfile?.has_whatsapp ? buildWhatsAppUrl(unlockedProfile.phone_number) : null;
+    const verificationStatus = normalizeVerificationStatus(employee.verification_status, employee.is_verified);
+    const activityEmploymentType = unlockedProfile?.employment_type ?? employee.employment_type;
+    const activitySignal = unlockedProfile?.activity_signal ?? employee.activity_signal;
+    const activitySignalUpdatedAt = unlockedProfile?.activity_signal_updated_at ?? employee.activity_signal_updated_at;
     const cardsInfo = isViewed
         ? "Контакт уже был открыт раньше и повторно не списывается."
         : remainingCards === null
@@ -123,6 +129,12 @@ export default function EmployeeDetailsDialog({
                                 <DialogDescription className="mt-2 text-base font-medium text-primary/80">
                                     {employee.specializations || "Специализация уточняется"}
                                 </DialogDescription>
+                                <div className="mt-3">
+                                    <VerificationBadge
+                                        status={employee.verification_status}
+                                        isVerified={employee.is_verified}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -162,9 +174,27 @@ export default function EmployeeDetailsDialog({
                                 Статус в базе
                             </div>
                             <p className="text-sm leading-6 text-muted-foreground">
-                                {employee.is_verified ? "Проверенный сотрудник" : "Ожидает проверки"}
+                                {verificationStatus === "verified"
+                                    ? "Полностью верифицирован у работника."
+                                    : verificationStatus === "rejected"
+                                        ? "Анкета есть в базе, но ручную верификацию не прошла."
+                                        : "Анкета находится на ручной проверке."}
                             </p>
+                                <p className="mt-2 text-xs font-medium text-foreground/80">
+                                    Текущий статус: {getVerificationLabel(employee.verification_status, employee.is_verified)}
+                                </p>
+                            {unlockedProfile?.verification_rejected_reason ? (
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                    Причина отклонения: {unlockedProfile.verification_rejected_reason}
+                                </p>
+                            ) : null}
                         </div>
+
+                        <EmployeeActivityBadge
+                            employmentType={activityEmploymentType}
+                            activitySignal={activitySignal}
+                            activitySignalUpdatedAt={activitySignalUpdatedAt}
+                        />
 
                         <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
                             <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
@@ -182,7 +212,7 @@ export default function EmployeeDetailsDialog({
                                 Занятость
                             </div>
                             <p className="text-sm leading-6 text-muted-foreground">
-                                {displayValue(unlockedProfile?.employment_type)}
+                                {displayValue(activityEmploymentType)}
                             </p>
                         </div>
 
