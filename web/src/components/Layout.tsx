@@ -73,7 +73,7 @@ export default function Layout() {
                         <div className="flex h-10 sm:h-16 items-center justify-center shrink-0">
                             <img src="/logo.png" alt="Opus" className="h-full w-auto object-contain" />
                         </div>
-                        <span className="text-xl sm:text-2xl font-bold tracking-tight hidden sm:inline-block text-primary">Work</span>
+                        <span className="text-xl sm:text-2xl font-bold tracking-tight hidden sm:inline-block text-primary">Жумуш</span>
                     </Link>
 
                     <nav className="flex items-center gap-3 sm:gap-6">
