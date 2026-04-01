@@ -1,6 +1,7 @@
 import smtplib
 import ssl
 from email.message import EmailMessage
+from typing import Optional
 
 from config import settings
 
@@ -10,7 +11,7 @@ def email_is_configured() -> bool:
     return bool(settings.SMTP_HOST and settings.SMTP_FROM_EMAIL)
 
 
-def send_email(recipient: str, subject: str, text_body: str, html_body: str | None = None) -> None:
+def send_email(recipient: str, subject: str, text_body: str, html_body: Optional[str] = None) -> None:
     """Отправляет email через SMTP."""
     if not email_is_configured():
         raise RuntimeError(

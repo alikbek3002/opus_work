@@ -2,6 +2,7 @@ import json
 import logging
 import requests
 from datetime import datetime, timedelta, timezone
+from typing import Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
@@ -30,7 +31,10 @@ def _is_failed_status(status: str) -> bool:
     return status.upper() in {"FAILED", "FAIL", "DECLINED", "CANCELED", "CANCELLED", "ERROR"}
 
 
-def _get_payment_for_callback(payment_id: str | None, transaction_id: str | None) -> dict | None:
+def _get_payment_for_callback(
+    payment_id: Optional[str],
+    transaction_id: Optional[str],
+) -> Optional[dict]:
     if payment_id:
         response_by_id = (
             supabase.table("payments")
@@ -112,7 +116,7 @@ async def create_payment(
         supabase.table("payments").update({"status": "failed"}).eq("id", payment_id).execute()
         raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
-    update_payload: dict[str, str] = {"status": "pending"}
+    update_payload: Dict[str, str] = {"status": "pending"}
     if finik_result.finik_payment_id:
         update_payload["fenik_payment_id"] = finik_result.finik_payment_id
 
@@ -128,7 +132,7 @@ async def create_payment(
 @router.post("/callback", name="payment_callback")
 async def payment_callback(
     request: Request,
-    payment_id: str | None = Query(default=None),
+    payment_id: Optional[str] = Query(default=None),
 ):
     """
     Webhook от Finik Acquiring — вызывается после успешной/неуспешной оплаты.
@@ -185,7 +189,7 @@ async def payment_callback(
     if payment_data.get("status") == "success":
         return {"status": "ok", "message": "Платёж уже обработан"}
 
-    update_data: dict[str, str] = {}
+    update_data: Dict[str, str] = {}
     if transaction_id:
         update_data["fenik_payment_id"] = transaction_id
     if _is_success_status(callback_status):

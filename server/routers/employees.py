@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from datetime import datetime
+from typing import List, Optional
 
 from database import supabase
 from middleware.auth import get_current_user
@@ -8,19 +9,19 @@ from models.schemas import EmployeeCard, EmployeeFullProfile, ViewedEmployeeHist
 router = APIRouter(prefix="/api/employees", tags=["Сотрудники"])
 
 
-def normalize_filter_values(values: list[str] | None) -> list[str]:
+def normalize_filter_values(values: Optional[List[str]]) -> List[str]:
     """Очищает массив фильтров от пустых значений."""
     if not values:
         return []
     return [value.strip() for value in values if value and value.strip()]
 
 
-@router.get("", response_model=list[EmployeeCard])
+@router.get("", response_model=List[EmployeeCard])
 async def get_employees(
     page: int = Query(1, ge=1, description="Номер страницы"),
     limit: int = Query(20, ge=1, le=100, description="Количество на странице"),
-    district: list[str] | None = Query(None, description="Фильтр по районам (можно передать несколько district)"),
-    specialization: list[str] | None = Query(None, description="Фильтр по профессиям (можно передать несколько specialization)"),
+    district: Optional[List[str]] = Query(None, description="Фильтр по районам (можно передать несколько district)"),
+    specialization: Optional[List[str]] = Query(None, description="Фильтр по профессиям (можно передать несколько specialization)"),
 ):
     """
     Получить список карточек сотрудников (базовая информация).
@@ -55,8 +56,8 @@ async def get_employees(
 
 @router.get("/count")
 async def get_employees_count(
-    district: list[str] | None = Query(None),
-    specialization: list[str] | None = Query(None),
+    district: Optional[List[str]] = Query(None),
+    specialization: Optional[List[str]] = Query(None),
 ):
     """Общее количество сотрудников (для пагинации на фронте). (Публичный доступ)"""
     query = supabase.table("employees").select("id", count="exact")
@@ -73,7 +74,7 @@ async def get_employees_count(
     return {"count": response.count or 0}
 
 
-@router.get("/history", response_model=list[ViewedEmployeeHistoryItem])
+@router.get("/history", response_model=List[ViewedEmployeeHistoryItem])
 async def get_view_history(
     current_user: dict = Depends(get_current_user),
 ):

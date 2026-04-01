@@ -4,7 +4,7 @@ import json
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 
 import requests
@@ -35,14 +35,14 @@ class FinikRequestError(RuntimeError):
 class FinikCreatePaymentResult:
     payment_url: str
     payment_status: str
-    finik_payment_id: str | None = None
+    finik_payment_id: Optional[str] = None
 
 
 def _normalize_pem(value: str) -> str:
     return value.strip().replace("\\n", "\n")
 
 
-def _read_pem_value(value: str | None, path: str | None, label: str) -> str:
+def _read_pem_value(value: Optional[str], path: Optional[str], label: str) -> str:
     if value:
         return _normalize_pem(value)
 
@@ -100,7 +100,7 @@ def build_webhook_url(base_url: str, payment_id: str) -> str:
 
 
 def _canonicalize_headers(host: str, headers: Mapping[str, str]) -> str:
-    x_api_headers: list[tuple[str, str]] = []
+    x_api_headers: List[Tuple[str, str]] = []
     for key, value in headers.items():
         lower_key = key.lower()
         if lower_key.startswith("x-api-"):
@@ -208,7 +208,10 @@ def verify_webhook_signature(
     return verify_payload_signature(payload, signature)
 
 
-def _extract_finik_error(response: requests.Response, response_json: dict[str, Any] | None) -> str:
+def _extract_finik_error(
+    response: requests.Response,
+    response_json: Optional[Dict[str, Any]],
+) -> str:
     if response_json:
         for key in ("ErrorMessage", "errorMessage", "message", "error"):
             value = response_json.get(key)
@@ -226,9 +229,9 @@ def create_payment_link(
     amount: int,
     redirect_url: str,
     webhook_url: str,
-    description: str | None = None,
-    start_date: int | None = None,
-    end_date: int | None = None,
+    description: Optional[str] = None,
+    start_date: Optional[int] = None,
+    end_date: Optional[int] = None,
 ) -> FinikCreatePaymentResult:
     api_key = settings.FINIK_API_KEY
     account_id = settings.FINIK_ACCOUNT_ID
@@ -236,7 +239,7 @@ def create_payment_link(
     qr_name = DEFAULT_FINIK_QR_NAME
     base_url = settings.FINIK_API_BASE_URL.strip().rstrip("/")
 
-    missing: list[str] = []
+    missing: List[str] = []
     if not api_key:
         missing.append("FINIK_API_KEY")
     if not account_id:
@@ -253,7 +256,7 @@ def create_payment_link(
 
     timestamp = str(int(time.time() * 1000))
 
-    data_payload: dict[str, Any] = {
+    data_payload: Dict[str, Any] = {
         "accountId": account_id,
         "merchantCategoryCode": mcc,
         "name_en": qr_name,
@@ -266,7 +269,7 @@ def create_payment_link(
     if end_date is not None:
         data_payload["endDate"] = end_date
 
-    payload: dict[str, Any] = {
+    payload: Dict[str, Any] = {
         "Amount": amount,
         "CardType": "FINIK_QR",
         "PaymentId": payment_id,
@@ -309,7 +312,7 @@ def create_payment_link(
     except requests.RequestException as exc:
         raise FinikRequestError("Не удалось связаться с Finik API") from exc
 
-    response_json: dict[str, Any] | None = None
+    response_json: Optional[Dict[str, Any]] = None
     if response.content:
         try:
             parsed_json = response.json()

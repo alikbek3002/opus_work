@@ -1,6 +1,7 @@
 import logging
 import psycopg2
 import requests
+from typing import Optional
 from config import settings
 from database import supabase
 
@@ -51,7 +52,7 @@ def save_photo_bytes(telegram_id: int, photo_bytes: bytes):
         logger.error(f"Ошибка сохранения фото в Railway PG для {telegram_id}: {e}")
 
 
-def _download_telegram_photo(telegram_id: int) -> bytes | None:
+def _download_telegram_photo(telegram_id: int) -> Optional[bytes]:
     """Фолбэк: скачивает фото напрямую из Telegram API, если его нет в Railway."""
     try:
         if not settings.BOT_TOKEN:
@@ -85,7 +86,7 @@ def _download_telegram_photo(telegram_id: int) -> bytes | None:
     return None
 
 
-def get_photo_bytes(telegram_id: int) -> bytes | None:
+def get_photo_bytes(telegram_id: int) -> Optional[bytes]:
     """Получает байты фотографии из базы данных по telegram_id."""
     try:
         conn = _get_connection()

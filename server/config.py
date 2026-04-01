@@ -1,7 +1,25 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent
+
+
+def _getenv(*names: str, default: str = "") -> str:
+    for name in names:
+        value = os.getenv(name)
+        if value:
+            return value
+    return default
+
+
+def _resolve_default_key_path(filename: str) -> str:
+    candidate = BASE_DIR / "keys" / filename
+    if candidate.exists():
+        return str(candidate)
+    return ""
 
 
 class Settings:
@@ -11,15 +29,31 @@ class Settings:
     RAILWAY_DATABASE_URL: str = os.getenv("RAILWAY_DATABASE_URL", "")
     BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
     JWT_SECRET: str = os.getenv("JWT_SECRET", "your-jwt-secret-key")
-    FINIK_API_KEY: str = os.getenv("FINIK_API_KEY", "")
-    FINIK_API_BASE_URL: str = os.getenv("FINIK_API_BASE_URL", "https://api.acquiring.averspay.kg")
-    FINIK_ACCOUNT_ID: str = os.getenv("FINIK_ACCOUNT_ID", "")
-    FINIK_PRIVATE_KEY: str = os.getenv("FINIK_PRIVATE_KEY", "")
-    FINIK_PRIVATE_KEY_PATH: str = os.getenv("FINIK_PRIVATE_KEY_PATH", "")
-    FINIK_PUBLIC_KEY: str = os.getenv("FINIK_PUBLIC_KEY", "")
-    FINIK_PUBLIC_KEY_PATH: str = os.getenv("FINIK_PUBLIC_KEY_PATH", "")
-    FINIK_WEBHOOK_URL: str = os.getenv("FINIK_WEBHOOK_URL", "")
-    FINIK_VERIFY_SIGNATURE: bool = os.getenv("FINIK_VERIFY_SIGNATURE", "false").lower() == "true"
+    FINIK_API_KEY: str = _getenv("FINIK_API_KEY", "FENIK_API_KEY")
+    FINIK_API_BASE_URL: str = _getenv(
+        "FINIK_API_BASE_URL",
+        "FENIK_API_BASE_URL",
+        default="https://api.acquiring.averspay.kg",
+    )
+    FINIK_ACCOUNT_ID: str = _getenv("FINIK_ACCOUNT_ID", "FENIK_ACCOUNT_ID")
+    FINIK_PRIVATE_KEY: str = _getenv("FINIK_PRIVATE_KEY", "FENIK_PRIVATE_KEY")
+    FINIK_PRIVATE_KEY_PATH: str = _getenv(
+        "FINIK_PRIVATE_KEY_PATH",
+        "FENIK_PRIVATE_KEY_PATH",
+        default=_resolve_default_key_path("finik_private.pem"),
+    )
+    FINIK_PUBLIC_KEY: str = _getenv("FINIK_PUBLIC_KEY", "FENIK_PUBLIC_KEY")
+    FINIK_PUBLIC_KEY_PATH: str = _getenv(
+        "FINIK_PUBLIC_KEY_PATH",
+        "FENIK_PUBLIC_KEY_PATH",
+        default=_resolve_default_key_path("finik_public.pem"),
+    )
+    FINIK_WEBHOOK_URL: str = _getenv("FINIK_WEBHOOK_URL", "FENIK_WEBHOOK_URL")
+    FINIK_VERIFY_SIGNATURE: bool = _getenv(
+        "FINIK_VERIFY_SIGNATURE",
+        "FENIK_VERIFY_SIGNATURE",
+        default="false",
+    ).lower() == "true"
     APP_URL: str = os.getenv("APP_URL", "http://localhost:5173")
     CRON_SECRET: str = os.getenv("CRON_SECRET", "")
     SMTP_HOST: str = os.getenv("SMTP_HOST", "")

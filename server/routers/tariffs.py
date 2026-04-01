@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 
@@ -11,7 +12,7 @@ from services.email import email_is_configured, send_email
 router = APIRouter(prefix="/api/tariffs", tags=["Тарифные планы"])
 
 
-@router.get("", response_model=list[TariffPlan])
+@router.get("", response_model=List[TariffPlan])
 async def get_tariffs():
     """Получить список доступных тарифных планов."""
     response = (
@@ -24,7 +25,7 @@ async def get_tariffs():
     return response.data
 
 
-@router.get("/subscription", response_model=SubscriptionDetails | None)
+@router.get("/subscription", response_model=Optional[SubscriptionDetails])
 async def get_subscription(current_user: dict = Depends(get_current_user)):
     """Получить текущую активную подписку работодателя."""
     now_iso = datetime.utcnow().isoformat()
@@ -46,7 +47,7 @@ async def get_subscription(current_user: dict = Depends(get_current_user)):
 
 @router.post("/notify-expiring")
 async def notify_expiring_subscriptions(
-    x_cron_token: str | None = Header(default=None),
+    x_cron_token: Optional[str] = Header(default=None),
 ):
     """Отправить email-напоминания по истекающим подпискам."""
     if not settings.CRON_SECRET:
