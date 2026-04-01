@@ -69,12 +69,14 @@ export default function EmployeeDetailsDialog({
         return null;
     }
 
-    const telegramId = unlockedProfile?.telegram_id ?? null;
+    const _telegramIdFull = unlockedProfile?.telegram_id ?? null;
+    const photoTelegramId = unlockedProfile?.telegram_id ?? employee.telegram_id ?? null;
+    // Используем telegramUsername или telegramId только из ПОЛНОГО профиля для связи
     const telegramUsername = unlockedProfile?.telegram_username?.replace(/^@/, "") || null;
     const telegramLink = telegramUsername
         ? `https://t.me/${telegramUsername}`
-        : telegramId
-            ? `tg://user?id=${telegramId}`
+        : _telegramIdFull
+            ? `tg://user?id=${_telegramIdFull}`
             : null;
     const whatsappUrl = unlockedProfile?.has_whatsapp ? buildWhatsAppUrl(unlockedProfile.phone_number) : null;
     const cardsInfo = isViewed
@@ -97,12 +99,15 @@ export default function EmployeeDetailsDialog({
                 <DialogHeader className="px-4 pt-6 pb-3 sm:px-8 sm:pt-8 sm:pb-4 relative z-10 border-b border-border/40 bg-muted/10">
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            {unlockedProfile?.telegram_id ? (
+                            {photoTelegramId ? (
                                 <div className="relative h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-full border-2 border-primary/20 bg-muted shrink-0 shadow-sm">
                                     <img
-                                        src={getPhotoUrl(unlockedProfile.telegram_id)}
+                                        src={getPhotoUrl(photoTelegramId)}
                                         alt={employee.full_name}
                                         className="h-full w-full object-cover"
+                                        onError={(e) => {
+                                            (e.currentTarget.parentElement as HTMLElement).innerHTML = `<div class="flex h-full w-full items-center justify-center text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-30"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></div>`
+                                        }}
                                     />
                                 </div>
                             ) : (
@@ -223,7 +228,7 @@ export default function EmployeeDetailsDialog({
                                     <div className="space-y-2 text-sm text-muted-foreground">
                                         <p className="font-medium text-primary">Контакты открыты. Можно написать сотруднику напрямую.</p>
                                         <div className="space-y-1.5 text-xs">
-                                            <p><strong className="text-foreground font-medium">Telegram:</strong> {telegramUsername ? `@${telegramUsername}` : telegramId ? `ID ${telegramId}` : "Не указан"}</p>
+                                            <p><strong className="text-foreground font-medium">Telegram:</strong> {telegramUsername ? `@${telegramUsername}` : _telegramIdFull ? `ID ${_telegramIdFull}` : "Не указан"}</p>
                                             <p><strong className="text-foreground font-medium">Номер:</strong> {displayValue(unlockedProfile?.phone_number)}</p>
                                             <p>
                                                 <strong className="text-foreground font-medium">WhatsApp:</strong> {unlockedProfile?.has_whatsapp ? "Есть" : "Нет, только обычный номер"}

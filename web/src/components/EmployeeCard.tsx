@@ -1,6 +1,6 @@
 import * as React from "react";
-import { type EmployeeCard as EmployeeCardType } from "@/lib/api";
-import { UserSearch, Eye, BriefcaseBusiness, MapPin, BadgeCheck, Clock } from "lucide-react";
+import { getPhotoUrl, type EmployeeCard as EmployeeCardType } from "@/lib/api";
+import { UserSearch, Eye, BriefcaseBusiness, MapPin, BadgeCheck, Clock, UserRound } from "lucide-react";
 
 interface EmployeeCardProps {
     employee: EmployeeCardType;
@@ -18,13 +18,29 @@ export const EmployeeCard = React.forwardRef<HTMLDivElement, EmployeeCardProps>(
                 className={`group cursor-pointer rounded-xl border border-border/60 bg-card p-5 transition-all hover:border-primary/40 hover:shadow-md flex flex-col gap-4 ${className || ""}`}
             >
                 <div>
-                    <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                        {employee.telegram_id ? (
+                            <div className="relative h-12 w-12 sm:h-14 sm:w-14 overflow-hidden rounded-full border border-primary/10 bg-muted shrink-0 shadow-sm">
+                                <img
+                                    src={getPhotoUrl(employee.telegram_id)}
+                                    alt={employee.full_name}
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => {
+                                        (e.currentTarget.parentElement as HTMLElement).innerHTML = `<div class="flex h-full w-full items-center justify-center text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-30"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></div>`
+                                    }}
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border border-primary/10 bg-muted text-muted-foreground shrink-0 shadow-sm">
+                                <UserRound className="h-6 w-6 sm:h-7 sm:w-7 opacity-30" />
+                            </div>
+                        )}
+                        <div className="flex-1 min-w-0">
                             <h3 className="flex items-center gap-2 text-lg font-bold text-card-foreground">
-                                {employee.full_name}
+                                <span className="truncate">{employee.full_name}</span>
                                 {employee.is_verified && <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0" />}
                             </h3>
-                            <p className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-primary/90 leading-tight">
+                            <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-primary/90 leading-tight">
                                 <BriefcaseBusiness className="h-4 w-4 shrink-0" />
                                 <span className="line-clamp-2">{employee.specializations || "Специализация уточняется"}</span>
                             </p>
@@ -50,8 +66,8 @@ export const EmployeeCard = React.forwardRef<HTMLDivElement, EmployeeCardProps>(
 
                 <button
                     className={`mt-2 flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-colors ${isViewed
-                            ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                            : "bg-primary text-primary-foreground hover:bg-primary/90"
+                        ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                        : "bg-primary text-primary-foreground hover:bg-primary/90"
                         }`}
                 >
                     {isViewed ? <Eye className="w-4 h-4" /> : <UserSearch className="w-4 h-4" />}

@@ -30,7 +30,7 @@ async def get_employees(
     offset = (page - 1) * limit
 
     query = supabase.table("employees").select(
-        "id, full_name, gender, age, district, specializations, experience, opus_experience, is_verified, contact_opens_count"
+        "id, full_name, gender, age, district, specializations, experience, opus_experience, is_verified, contact_opens_count, telegram_id"
     )
 
     district_values = normalize_filter_values(district)

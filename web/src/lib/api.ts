@@ -163,6 +163,7 @@ export interface EmployeeCard {
     opus_experience: string | null;
     is_verified: boolean;
     contact_opens_count: number;
+    telegram_id: number | null;
 }
 
 export interface EmployeeFullProfile extends EmployeeCard {
@@ -174,7 +175,6 @@ export interface EmployeeFullProfile extends EmployeeCard {
     ready_for_weekends: boolean | null;
     about_me: string | null;
     has_recommendations: boolean | null;
-    telegram_id: number | null;
     created_at: string | null;
 }
 

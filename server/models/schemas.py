@@ -41,6 +41,7 @@ class EmployeeCard(BaseModel):
     opus_experience: Optional[str] = None
     is_verified: bool = False
     contact_opens_count: int = 0
+    telegram_id: Optional[int] = None
 
 
 class EmployeeFullProfile(EmployeeCard):
@@ -53,8 +54,8 @@ class EmployeeFullProfile(EmployeeCard):
     ready_for_weekends: Optional[bool] = None
     about_me: Optional[str] = None
     has_recommendations: Optional[bool] = None
-    telegram_id: Optional[int] = None
     created_at: Optional[datetime] = None
+
 
 
 class ViewedEmployeeHistoryItem(EmployeeFullProfile):
