@@ -29,7 +29,16 @@ class Settings:
     SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "")
     SMTP_FROM_NAME: str = os.getenv("SMTP_FROM_NAME", "Opus")
     SMTP_USE_TLS: bool = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
-    CORS_ORIGINS: list = os.getenv("CORS_ORIGINS", "http://localhost:5173,https://opus-work.org,https://www.opus-work.org").split(",")
+    
+    _cors_env = os.getenv("CORS_ORIGINS", "http://localhost:5173,https://opus-work.org,https://www.opus-work.org")
+    CORS_ORIGINS: list = [origin.strip() for origin in _cors_env.split(",") if origin.strip()]
+    
+    def __init__(self):
+        # Always ensure these origins are allowed
+        default_origins = ["http://localhost:5173", "https://opus-work.org", "https://www.opus-work.org"]
+        for origin in default_origins:
+            if origin not in self.CORS_ORIGINS:
+                self.CORS_ORIGINS.append(origin)
 
 
 settings = Settings()
