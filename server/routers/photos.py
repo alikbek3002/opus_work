@@ -17,9 +17,10 @@ async def get_photo(telegram_id: int):
     if not photo_data:
         raise HTTPException(status_code=404, detail="Фото не найдено")
     
-    # Кэшируем фото в браузере на 1 час (3600 секунд), так как фото редко меняются
+    # Указываем браузеру кэшировать недолго (или revalidate),
+    # чтобы при удалении/изменении анкеты фото обновлялось, а не висело в кэше браузера.
     headers = {
-        "Cache-Control": "public, max-age=3600"
+        "Cache-Control": "no-cache, max-age=0"
     }
     
     # Telegram обычно отдает фото как jpeg

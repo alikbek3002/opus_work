@@ -106,10 +106,9 @@ def build_multiselect_inline_keyboard(options: list[str], selected: set[str], pr
             row.append(InlineKeyboardButton(text, callback_data=callback_data))
         keyboard.append(row)
     
-    # Добавляем кнопку "Готово", если выбрана хотя бы одна опция
+    # Всегда добавляем кнопку Готово/Пропустить
     done_text = f"▶️ Далее (выбрано: {len(selected)})" if selected else "▶️ Пропустить (не выбрано)"
-    if selected:
-        keyboard.append([InlineKeyboardButton(done_text, callback_data=f"{prefix}_done")])
+    keyboard.append([InlineKeyboardButton(done_text, callback_data=f"{prefix}_done")])
         
     return InlineKeyboardMarkup(keyboard)
 
