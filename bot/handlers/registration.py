@@ -68,6 +68,7 @@ SPECIALIZATION_OPTIONS = [
     "Администратор",
     "Курьер",
 ]
+EXPERIENCE_OPTIONS = ["Без опыта", "Меньше года", "1-3 года", "3+ года"]
 EMPLOYMENT_TYPE_OPTIONS = ["Полная занятость", "Подработка"]
 YES_NO_OPTIONS = ["Да", "Нет"]
 FIELD_LABELS = {
@@ -75,9 +76,9 @@ FIELD_LABELS = {
     "age": "Возраст",
     "gender": "Пол",
     "photo_file_id": "Фото",
-    "specializations": "Профессия",
+    "specializations": "Профессии",
     "experience": "Опыт работы",
-    "district": "Район",
+    "district": "Районы",
     "employment_type": "Занятость",
     "ready_for_weekends": "Готовность работать в выходные",
     "about_me": "О себе",
@@ -91,6 +92,26 @@ def build_reply_keyboard(options: list[str], columns: int = 2) -> ReplyKeyboardM
     """Строит клавиатуру выбора с кнопками."""
     rows = [options[index:index + columns] for index in range(0, len(options), columns)]
     return ReplyKeyboardMarkup(rows, resize_keyboard=True, one_time_keyboard=True)
+
+def build_multiselect_inline_keyboard(options: list[str], selected: set[str], prefix: str, columns: int = 2) -> InlineKeyboardMarkup:
+    """Строит Inline-клавиатуру для множественного выбора с галочками."""
+    keyboard = []
+    
+    # Разбиваем опции на строки по columns штук
+    for index in range(0, len(options), columns):
+        row = []
+        for opt in options[index:index + columns]:
+            text = f"✅ {opt}" if opt in selected else opt
+            callback_data = f"{prefix}_toggle:{opt}"
+            row.append(InlineKeyboardButton(text, callback_data=callback_data))
+        keyboard.append(row)
+    
+    # Добавляем кнопку "Готово", если выбрана хотя бы одна опция
+    done_text = f"▶️ Далее (выбрано: {len(selected)})" if selected else "▶️ Пропустить (не выбрано)"
+    if selected:
+        keyboard.append([InlineKeyboardButton(done_text, callback_data=f"{prefix}_done")])
+        
+    return InlineKeyboardMarkup(keyboard)
 
 
 def build_confirmation_keyboard() -> InlineKeyboardMarkup:
@@ -310,7 +331,8 @@ async def gender_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 4/12: Сфотографируйтесь для анкеты, чтобы было четко видно ваше лицо (можно сделать обычное селфи прямо сейчас):",
+        "Шаг 4/12: Сделайте селфи прямо сейчас на фронтальную камеру, чтобы было четко видно ваше лицо, и отправьте мне:",
+        reply_markup=ReplyKeyboardRemove(),
     )
     return PHOTO
 
@@ -331,49 +353,74 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 5/12: Кем хотите работать? Выберите вариант:",
-        reply_markup=build_reply_keyboard(SPECIALIZATION_OPTIONS),
+        "Шаг 5/12: Кем хотите работать? Можно выбрать несколько вариантов:",
+        reply_markup=build_multiselect_inline_keyboard(SPECIALIZATION_OPTIONS, set(), "spec"),
     )
     return SPECIALIZATIONS
 
 
 async def photo_required_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Подсказывает отправить фото, если прислали текст/не фото."""
-    await update.message.reply_text("⚠️ Нужно отправить фото. Можно обычное селфи.")
+    await update.message.reply_text("⚠️ Нужно отправить фото. Сделайте обычное селфи.")
     return PHOTO
 
 
-async def specializations_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Получаем профессию из фиксированного списка."""
-    specialization = update.message.text.strip()
+async def specializations_toggle_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Обработка выбора профессий."""
+    query = update.callback_query
+    await query.answer()
 
-    if specialization not in SPECIALIZATION_OPTIONS:
-        await update.message.reply_text(
-            "⚠️ Пожалуйста, выберите профессию кнопкой ниже:",
-            reply_markup=build_reply_keyboard(SPECIALIZATION_OPTIONS),
-        )
+    spec = query.data.split(":", maxsplit=1)[1]
+    selected = context.user_data.setdefault("specializations_set", set())
+
+    if spec in selected:
+        selected.remove(spec)
+    else:
+        selected.add(spec)
+
+    await query.edit_message_reply_markup(
+        reply_markup=build_multiselect_inline_keyboard(SPECIALIZATION_OPTIONS, selected, "spec")
+    )
+    return SPECIALIZATIONS
+
+
+async def specializations_done_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Завершение выбора профессий."""
+    query = update.callback_query
+    selected = context.user_data.get("specializations_set", set())
+
+    if not selected:
+        await query.answer("⚠️ Выберите хотя бы одну профессию!", show_alert=True)
         return SPECIALIZATIONS
 
-    context.user_data["specializations"] = specialization
+    await query.answer()
+
+    context.user_data["specializations"] = ", ".join(sorted(selected))
+    context.user_data.pop("specializations_set", None)
 
     if context.user_data.get("edit_field") == "specializations":
         context.user_data.pop("edit_field", None)
-        await show_confirmation(update, context)
+        await show_confirmation(update, context, edit_message=True)
         return CONFIRM
 
-    await update.message.reply_text(
-        "Шаг 6/12: Где работали раньше? Напишите название заведения и сколько там работали:",
-        reply_markup=ReplyKeyboardRemove(),
+    await query.edit_message_text(f"Профессии выбраны: {context.user_data['specializations']}")
+    
+    await query.message.reply_text(
+        "Шаг 6/12: Какой у вас опыт работы? Выберите подходящий вариант:",
+        reply_markup=build_reply_keyboard(EXPERIENCE_OPTIONS),
     )
     return EXPERIENCE
 
 
 async def experience_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Получаем опыт работы."""
+    """Получаем опыт работы из кнопок."""
     experience = update.message.text.strip()
 
-    if len(experience) < 5:
-        await update.message.reply_text("⚠️ Напишите чуть подробнее: заведение + срок работы.")
+    if experience not in EXPERIENCE_OPTIONS:
+        await update.message.reply_text(
+            "⚠️ Пожалуйста, выберите опыт работы кнопкой ниже:",
+            reply_markup=build_reply_keyboard(EXPERIENCE_OPTIONS),
+        )
         return EXPERIENCE
 
     context.user_data["experience"] = experience
@@ -384,31 +431,54 @@ async def experience_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 7/12: В каких районах готовы работать? Выберите район:",
-        reply_markup=build_reply_keyboard(DISTRICT_OPTIONS),
+        "Шаг 7/12: В каких районах готовы работать? Можно выбрать несколько:",
+        reply_markup=build_multiselect_inline_keyboard(DISTRICT_OPTIONS, set(), "dist"),
     )
     return DISTRICT
 
 
-async def district_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Получаем район из фиксированного списка."""
-    district = update.message.text.strip()
+async def district_toggle_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Обработка выбора районов."""
+    query = update.callback_query
+    await query.answer()
 
-    if district not in DISTRICT_OPTIONS:
-        await update.message.reply_text(
-            "⚠️ Пожалуйста, выберите район кнопкой ниже:",
-            reply_markup=build_reply_keyboard(DISTRICT_OPTIONS),
-        )
+    dist = query.data.split(":", maxsplit=1)[1]
+    selected = context.user_data.setdefault("district_set", set())
+
+    if dist in selected:
+        selected.remove(dist)
+    else:
+        selected.add(dist)
+
+    await query.edit_message_reply_markup(
+        reply_markup=build_multiselect_inline_keyboard(DISTRICT_OPTIONS, selected, "dist")
+    )
+    return DISTRICT
+
+
+async def district_done_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Завершение выбора районов."""
+    query = update.callback_query
+    selected = context.user_data.get("district_set", set())
+
+    if not selected:
+        await query.answer("⚠️ Выберите хотя бы один район!", show_alert=True)
         return DISTRICT
 
-    context.user_data["district"] = district
+    await query.answer()
+
+    context.user_data["district"] = ", ".join(sorted(selected))
+    context.user_data.pop("district_set", None)
 
     if context.user_data.get("edit_field") == "district":
         context.user_data.pop("edit_field", None)
-        await show_confirmation(update, context)
+        await show_confirmation(update, context, edit_message=True)
         return CONFIRM
 
-    await update.message.reply_text(
+    await query.edit_message_text(f"Районы выбраны: {context.user_data['district']}")
+
+
+    await query.message.reply_text(
         "Шаг 8/12: Выберите формат занятости:",
         reply_markup=build_reply_keyboard(EMPLOYMENT_TYPE_OPTIONS),
     )
@@ -610,22 +680,22 @@ async def edit_field(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     if field == "specializations":
         await query.message.reply_text(
-            "Выберите новую профессию:",
-            reply_markup=build_reply_keyboard(SPECIALIZATION_OPTIONS),
+            "Выберите профессии (можно несколько):",
+            reply_markup=build_multiselect_inline_keyboard(SPECIALIZATION_OPTIONS, set(), "spec"),
         )
         return SPECIALIZATIONS
 
     if field == "experience":
         await query.message.reply_text(
-            "Напишите новый опыт (заведение + срок):",
-            reply_markup=ReplyKeyboardRemove(),
+            "Выберите актуальный опыт работы:",
+            reply_markup=build_reply_keyboard(EXPERIENCE_OPTIONS),
         )
         return EXPERIENCE
 
     if field == "district":
         await query.message.reply_text(
-            "Выберите новый район:",
-            reply_markup=build_reply_keyboard(DISTRICT_OPTIONS),
+            "Выберите районы для работы (можно несколько):",
+            reply_markup=build_multiselect_inline_keyboard(DISTRICT_OPTIONS, set(), "dist"),
         )
         return DISTRICT
 
@@ -784,9 +854,15 @@ def get_registration_handler() -> ConversationHandler:
                 MessageHandler(filters.PHOTO, photo_handler),
                 MessageHandler(filters.ALL & ~filters.COMMAND, photo_required_handler),
             ],
-            SPECIALIZATIONS: [MessageHandler(filters.TEXT & ~filters.COMMAND, specializations_handler)],
+            SPECIALIZATIONS: [
+                CallbackQueryHandler(specializations_toggle_handler, pattern="^spec_toggle:"),
+                CallbackQueryHandler(specializations_done_handler, pattern="^spec_done$"),
+            ],
             EXPERIENCE: [MessageHandler(filters.TEXT & ~filters.COMMAND, experience_handler)],
-            DISTRICT: [MessageHandler(filters.TEXT & ~filters.COMMAND, district_handler)],
+            DISTRICT: [
+                CallbackQueryHandler(district_toggle_handler, pattern="^dist_toggle:"),
+                CallbackQueryHandler(district_done_handler, pattern="^dist_done$"),
+            ],
             EMPLOYMENT_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, employment_type_handler)],
             WEEKEND_WORK: [MessageHandler(filters.TEXT & ~filters.COMMAND, weekend_work_handler)],
             ABOUT_ME: [MessageHandler(filters.TEXT & ~filters.COMMAND, about_me_handler)],
