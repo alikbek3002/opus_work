@@ -33,8 +33,8 @@ export const EmployeeCard = React.forwardRef<HTMLDivElement, EmployeeCardProps>(
                                 />
                             </div>
                         ) : (
-                            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border border-primary/10 bg-muted text-muted-foreground shrink-0 shadow-sm">
-                                <UserRound className="h-6 w-6 sm:h-7 sm:w-7 opacity-30" />
+                            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border border-primary/10 bg-muted text-muted-foreground shrink-0 shadow-sm overflow-hidden p-2 bg-white">
+                                <img src="/logo.png" alt="Opus" className="h-full w-full object-contain" />
                             </div>
                         )}
                         <div className="flex-1 min-w-0">

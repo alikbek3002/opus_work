@@ -10,6 +10,7 @@ interface PricingProps {
 interface PricingCardProps {
   label: string;
   price: number;
+  oldPrice?: number;
   description: string;
   cta: string;
   background: string;
@@ -45,36 +46,43 @@ export const SquishyPricing = ({ tariffs, onSelect, isPopularIndex = 1 }: Pricin
     };
   };
 
+  const getOldPrice = (tariff: TariffPlan) => {
+    if (tariff.period === "week") return 2900;
+    if (tariff.period === "month") return 6900;
+    return undefined;
+  };
+
   return (
     <section className="bg-background px-4 py-12 transition-colors">
       <div className="mx-auto flex w-fit flex-wrap justify-center gap-6 md:gap-8">
-          {tariffs.map((tariff: TariffPlan, index: number) => {
-              const { bgColor, bgComponent } = getThemeByTariff(tariff, index);
-              
-              return (
-                  <PricingCard
-                    key={tariff.id}
-                    label={tariff.name}
-                    price={tariff.price}
-                    description={
-                      tariff.description
-                        ? tariff.description
-                        : `Доступ к базе проверенных сотрудников. Лимит карточек: ${tariff.card_limit}`
-                    }
-                    cta="Выбрать тариф"
-                    background={bgColor}
-                    BGComponent={bgComponent}
-                    onSelect={() => onSelect(tariff.id)}
-                    isPopular={index === isPopularIndex}
-                  />
-              );
-          })}
-        </div>
-      </section>
+        {tariffs.map((tariff: TariffPlan, index: number) => {
+          const { bgColor, bgComponent } = getThemeByTariff(tariff, index);
+
+          return (
+            <PricingCard
+              key={tariff.id}
+              label={tariff.name}
+              price={tariff.price}
+              oldPrice={getOldPrice(tariff)}
+              description={
+                tariff.description
+                  ? tariff.description
+                  : `Доступ к базе проверенных сотрудников. Лимит карточек: ${tariff.card_limit}`
+              }
+              cta="Выбрать тариф"
+              background={bgColor}
+              BGComponent={bgComponent}
+              onSelect={() => onSelect(tariff.id)}
+              isPopular={index === isPopularIndex}
+            />
+          );
+        })}
+      </div>
+    </section>
   );
 };
 
-const PricingCard = ({ label, price, description, cta, background, BGComponent, onSelect, isPopular }: PricingCardProps) => {
+const PricingCard = ({ label, price, oldPrice, description, cta, background, BGComponent, onSelect, isPopular }: PricingCardProps) => {
   return (
     <motion.div
       whileHover="hover"
@@ -83,25 +91,32 @@ const PricingCard = ({ label, price, description, cta, background, BGComponent, 
       className={`relative h-96 w-80 shrink-0 overflow-hidden rounded-xl p-8 ${background} shadow-lg hover:shadow-xl transition-shadow ${isPopular ? 'ring-4 ring-primary ring-offset-2 ring-offset-background' : ''}`}
     >
       {isPopular && (
-          <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold rounded-bl-lg z-20 shadow-md">
-              Популярный
-          </div>
+        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold rounded-bl-lg z-20 shadow-md">
+          Популярный
+        </div>
       )}
       <div className="relative z-10 text-white h-full flex flex-col">
         <span className="mb-3 block w-fit rounded-full bg-white/20 backdrop-blur-sm px-3 py-0.5 text-sm font-medium text-white border border-white/20">
           {label}
         </span>
-        <motion.span
-          initial={{ scale: 0.85 }}
-          variants={{ hover: { scale: 1 } }}
-          transition={{ duration: 1, ease: "backInOut" }}
-          className="my-2 block origin-top-left font-mono text-5xl font-black leading-[1.2]"
-        >
-          {price.toLocaleString()} сом
-        </motion.span>
+        <div className="my-2 flex items-end gap-2 origin-top-left">
+          <motion.span
+            initial={{ scale: 0.85 }}
+            variants={{ hover: { scale: 1 } }}
+            transition={{ duration: 1, ease: "backInOut" }}
+            className="font-mono text-5xl font-black leading-[1.2]"
+          >
+            {price.toLocaleString()} сом
+          </motion.span>
+          {oldPrice && (
+            <span className="font-mono text-xl line-through text-white/50 mb-1">
+              {oldPrice.toLocaleString()} сом
+            </span>
+          )}
+        </div>
         <p className="text-sm text-white/90 mt-2 flex-grow">{description}</p>
       </div>
-      <button 
+      <button
         onClick={onSelect}
         className="absolute bottom-4 left-4 right-4 z-20 rounded-lg border-2 border-white bg-white py-2 text-center font-mono font-black uppercase text-neutral-800 backdrop-blur-sm transition-all duration-200 hover:bg-white/10 hover:text-white hover:border-white/80 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent"
       >

@@ -1,5 +1,6 @@
 import json
 import logging
+import requests
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -217,6 +218,15 @@ async def payment_callback(
             "expires_at": expires_at.isoformat(),
             "is_active": True,
         }).execute()
+
+        try:
+            bot_token = settings.BOT_TOKEN
+            employer_id = payment_data["employer_id"]
+            telegram_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+            message_text = "🎉 Вы успешно приобрели тариф и подписка активирована!\n\n🔥 Успейте купить еще в следующий раз — осталось всего 28 тарифов по скидке для первых зарегистрированных пользователей!"
+            requests.post(telegram_url, json={"chat_id": employer_id, "text": message_text}, timeout=5)
+        except Exception as e:
+            logger.error("Failed to send telegram notification: %s", e)
 
         return {"status": "ok", "message": "Подписка активирована"}
 

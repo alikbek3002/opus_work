@@ -117,8 +117,8 @@ export default function EmployeeDetailsDialog({
                                     />
                                 </div>
                             ) : (
-                                <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full border-2 border-primary/20 bg-muted text-muted-foreground shrink-0 shadow-sm">
-                                    <UserRound className="h-8 w-8 sm:h-10 sm:w-10 opacity-30" />
+                                <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full border-2 border-primary/20 bg-muted text-muted-foreground shrink-0 shadow-sm overflow-hidden p-2 bg-white">
+                                    <img src="/logo.png" alt="Opus" className="h-full w-full object-contain" />
                                 </div>
                             )}
                             <div>
@@ -180,9 +180,9 @@ export default function EmployeeDetailsDialog({
                                         ? "Анкета есть в базе, но ручную верификацию не прошла."
                                         : "Анкета находится на ручной проверке."}
                             </p>
-                                <p className="mt-2 text-xs font-medium text-foreground/80">
-                                    Текущий статус: {getVerificationLabel(employee.verification_status, employee.is_verified)}
-                                </p>
+                            <p className="mt-2 text-xs font-medium text-foreground/80">
+                                Текущий статус: {getVerificationLabel(employee.verification_status, employee.is_verified)}
+                            </p>
                             {unlockedProfile?.verification_rejected_reason ? (
                                 <p className="mt-2 text-xs text-muted-foreground">
                                     Причина отклонения: {unlockedProfile.verification_rejected_reason}

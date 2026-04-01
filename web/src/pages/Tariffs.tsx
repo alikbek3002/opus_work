@@ -44,10 +44,13 @@ export default function Tariffs() {
 
     return (
         <div className="flex flex-col gap-10 w-full animate-in fade-in duration-500">
-            <div className="text-center max-w-2xl mx-auto space-y-4 px-4 sm:px-0">
+            <div className="text-center max-w-2xl mx-auto space-y-4 px-4 sm:px-0 mt-4">
+                <div className="inline-block bg-primary/10 border border-primary/20 text-primary font-medium text-sm px-4 py-1 rounded-full mb-2">
+                    🔥 Специальные цены 1900/4900 сом действуют только для первых 50 зарегистрированных пользователей!
+                </div>
                 <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Тарифные планы</h1>
                 <p className="text-muted-foreground text-base sm:text-lg">
-                    Выберите подходящий тариф для доступа к базе проверенных сотрудников
+                    Найдите нужного сотрудника за 15 минут
                 </p>
 
                 {isAuthenticated && subscription && (

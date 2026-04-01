@@ -68,8 +68,9 @@ SPECIALIZATION_OPTIONS = [
     "Администратор",
     "Курьер",
 ]
-EXPERIENCE_OPTIONS = ["Без опыта", "Меньше года", "1-3 года", "3+ года"]
-EMPLOYMENT_TYPE_OPTIONS = ["Полная занятость", "Подработка"]
+EXPERIENCE_OPTIONS = ["Без опыта", "До 1 года", "1–2 года", "2–5 лет", "5+ лет"]
+EMPLOYMENT_TYPE_OPTIONS = ["Подработки", "Сезонная", "Постоянная работа"]
+SCHEDULE_OPTIONS = ["Только будни", "Будни + выходные", "Только выходные", "Любые дни"]
 YES_NO_OPTIONS = ["Да", "Нет"]
 FIELD_LABELS = {
     "full_name": "Имя",
@@ -79,8 +80,8 @@ FIELD_LABELS = {
     "specializations": "Профессии",
     "experience": "Опыт работы",
     "district": "Районы",
-    "employment_type": "Занятость",
-    "ready_for_weekends": "Готовность работать в выходные",
+    "employment_type": "Формат работы",
+    "schedule": "График работы",
     "about_me": "О себе",
     "has_recommendations": "Рекомендации",
     "has_whatsapp": "Способ связи",
@@ -143,7 +144,7 @@ def build_edit_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton("🕒 Занятость", callback_data="edit_field:employment_type"),
         ],
         [
-            InlineKeyboardButton("📅 Выходные", callback_data="edit_field:ready_for_weekends"),
+            InlineKeyboardButton("📅 График", callback_data="edit_field:schedule"),
             InlineKeyboardButton("📝 О себе", callback_data="edit_field:about_me"),
         ],
         [
@@ -206,8 +207,8 @@ def build_summary(data: dict) -> str:
         f"🧰 Профессия: {escape(str(data.get('specializations', 'Не указано')))}\n"
         f"💼 Где работали: {escape(str(data.get('experience', 'Не указано')))}\n"
         f"📍 Районы: {escape(str(data.get('district', 'Не указано')))}\n"
-        f"🕒 Занятость: {escape(str(data.get('employment_type', 'Не указано')))}\n"
-        f"📅 Готов(а) к выходным: {escape(get_yes_no_label(data.get('ready_for_weekends')))}\n"
+        f"🕒 Формат работы: {escape(str(data.get('employment_type', 'Не указано')))}\n"
+        f"📅 График работы: {escape(str(data.get('schedule', 'Не указано')))}\n"
         f"📝 О себе: {escape(str(data.get('about_me', 'Не указано')))}\n"
         f"⭐ Есть рекомендации: {escape(get_yes_no_label(data.get('has_recommendations')))}\n"
         f"🔗 Telegram username: {escape(format_telegram_username(data.get('telegram_username')))}\n"
@@ -478,51 +479,72 @@ async def district_done_handler(update: Update, context: ContextTypes.DEFAULT_TY
 
 
     await query.message.reply_text(
-        "Шаг 8/12: Выберите формат занятости:",
-        reply_markup=build_reply_keyboard(EMPLOYMENT_TYPE_OPTIONS),
+        "Шаг 8/12: Выберите формат работы (можно несколько):",
+        reply_markup=build_multiselect_inline_keyboard(EMPLOYMENT_TYPE_OPTIONS, set(), "emp"),
     )
     return EMPLOYMENT_TYPE
 
 
-async def employment_type_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Получаем формат занятости."""
-    employment_type = update.message.text.strip()
+async def employment_type_toggle_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Обработка выбора формата работы."""
+    query = update.callback_query
+    await query.answer()
 
-    if employment_type not in EMPLOYMENT_TYPE_OPTIONS:
-        await update.message.reply_text(
-            "⚠️ Пожалуйста, выберите формат занятости кнопкой ниже:",
-            reply_markup=build_reply_keyboard(EMPLOYMENT_TYPE_OPTIONS),
-        )
+    emp = query.data.split(":", maxsplit=1)[1]
+    selected = context.user_data.setdefault("employment_type_set", set())
+
+    if emp in selected:
+        selected.remove(emp)
+    else:
+        selected.add(emp)
+
+    await query.edit_message_reply_markup(
+        reply_markup=build_multiselect_inline_keyboard(EMPLOYMENT_TYPE_OPTIONS, selected, "emp")
+    )
+    return EMPLOYMENT_TYPE
+
+
+async def employment_type_done_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Завершение выбора формата занятости."""
+    query = update.callback_query
+    selected = context.user_data.get("employment_type_set", set())
+
+    if not selected:
+        await query.answer("⚠️ Выберите хотя бы один формат!", show_alert=True)
         return EMPLOYMENT_TYPE
 
-    context.user_data["employment_type"] = employment_type
+    await query.answer()
+    context.user_data["employment_type"] = ", ".join(sorted(selected))
+    context.user_data.pop("employment_type_set", None)
 
     if context.user_data.get("edit_field") == "employment_type":
         context.user_data.pop("edit_field", None)
-        await show_confirmation(update, context)
+        await show_confirmation(update, context, edit_message=True)
         return CONFIRM
 
-    await update.message.reply_text(
-        "Шаг 9/12: Готовы работать в выходные?",
-        reply_markup=build_reply_keyboard(YES_NO_OPTIONS),
+    await query.edit_message_text(f"Формат работы: {context.user_data['employment_type']}")
+
+    await query.message.reply_text(
+        "Шаг 9/12: Выберите график работы:",
+        reply_markup=build_reply_keyboard(SCHEDULE_OPTIONS),
     )
     return WEEKEND_WORK
 
 
-async def weekend_work_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Получаем готовность работать в выходные."""
+async def schedule_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Получаем график работы."""
     answer = update.message.text.strip()
 
-    if answer not in YES_NO_OPTIONS:
+    if answer not in SCHEDULE_OPTIONS:
         await update.message.reply_text(
-            "⚠️ Выберите «Да» или «Нет» кнопкой ниже:",
-            reply_markup=build_reply_keyboard(YES_NO_OPTIONS),
+            "⚠️ Выберите график работы кнопкой ниже:",
+            reply_markup=build_reply_keyboard(SCHEDULE_OPTIONS),
         )
         return WEEKEND_WORK
 
-    context.user_data["ready_for_weekends"] = answer == "Да"
+    context.user_data["schedule"] = answer
 
-    if context.user_data.get("edit_field") == "ready_for_weekends":
+    if context.user_data.get("edit_field") == "schedule":
         context.user_data.pop("edit_field", None)
         await show_confirmation(update, context)
         return CONFIRM
@@ -700,15 +722,15 @@ async def edit_field(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     if field == "employment_type":
         await query.message.reply_text(
-            "Выберите новый формат занятости:",
-            reply_markup=build_reply_keyboard(EMPLOYMENT_TYPE_OPTIONS),
+            "Выберите новый формат работы (можно несколько):",
+            reply_markup=build_multiselect_inline_keyboard(EMPLOYMENT_TYPE_OPTIONS, set(), "emp"),
         )
         return EMPLOYMENT_TYPE
 
-    if field == "ready_for_weekends":
+    if field == "schedule":
         await query.message.reply_text(
-            "Готовы работать в выходные?",
-            reply_markup=build_reply_keyboard(YES_NO_OPTIONS),
+            "Выберите новый график работы:",
+            reply_markup=build_reply_keyboard(SCHEDULE_OPTIONS),
         )
         return WEEKEND_WORK
 
@@ -767,7 +789,7 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
         "experience": data["experience"],
         "district": data["district"],
         "employment_type": data["employment_type"],
-        "ready_for_weekends": data["ready_for_weekends"],
+        "schedule": data.get("schedule"),
         "about_me": data["about_me"],
         "has_recommendations": data["has_recommendations"],
         "phone_number": data["phone_number"],
@@ -869,8 +891,11 @@ def get_registration_handler() -> ConversationHandler:
                 CallbackQueryHandler(district_toggle_handler, pattern="^dist_toggle:"),
                 CallbackQueryHandler(district_done_handler, pattern="^dist_done$"),
             ],
-            EMPLOYMENT_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, employment_type_handler)],
-            WEEKEND_WORK: [MessageHandler(filters.TEXT & ~filters.COMMAND, weekend_work_handler)],
+            EMPLOYMENT_TYPE: [
+                CallbackQueryHandler(employment_type_toggle_handler, pattern="^emp_toggle:"),
+                CallbackQueryHandler(employment_type_done_handler, pattern="^emp_done$"),
+            ],
+            WEEKEND_WORK: [MessageHandler(filters.TEXT & ~filters.COMMAND, schedule_handler)],
             ABOUT_ME: [MessageHandler(filters.TEXT & ~filters.COMMAND, about_me_handler)],
             HAS_RECOMMENDATIONS: [MessageHandler(filters.TEXT & ~filters.COMMAND, recommendations_handler)],
             CONTACT_METHOD: [MessageHandler(filters.TEXT & ~filters.COMMAND, contact_method_handler)],

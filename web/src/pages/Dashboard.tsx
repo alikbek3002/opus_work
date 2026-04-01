@@ -84,7 +84,7 @@ export default function Dashboard() {
         return (
             <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                <p className="text-muted-foreground font-medium">Загрузка специалистов...</p>
+                <p className="text-muted-foreground font-medium">Загрузка кандидатов...</p>
             </div>
         );
     }
@@ -93,8 +93,8 @@ export default function Dashboard() {
         <div className="flex flex-col gap-8 w-full">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Специалисты</h1>
-                    <p className="text-muted-foreground mt-1">Ресурсная база проверенных сотрудников</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Кандидаты</h1>
+                    <p className="text-muted-foreground mt-1">Найдите нужного сотрудника за 15 минут</p>
                 </div>
             </div>
 
@@ -131,7 +131,7 @@ export default function Dashboard() {
                         onClick={handleSearch}
                         className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md h-11 px-6 py-2 w-full sm:w-auto"
                     >
-                        Найти сотрудников
+                        Найти кандидатов
                     </button>
                     <button
                         onClick={handleResetFilters}
@@ -151,7 +151,7 @@ export default function Dashboard() {
             {employees.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 sm:py-20 px-4 text-center border border-border/50 rounded-2xl bg-card shadow-sm">
                     <span className="text-5xl mb-4">🔍</span>
-                    <h3 className="text-xl font-semibold mb-2">Не найдено ни одного сотрудника</h3>
+                    <h3 className="text-xl font-semibold mb-2">Не найдено ни одного кандидата</h3>
                     <p className="text-muted-foreground">Попробуйте изменить параметры поиска или загляните позже.</p>
                 </div>
             ) : (
