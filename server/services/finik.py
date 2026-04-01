@@ -16,6 +16,9 @@ from config import settings
 
 
 FINIK_PAYMENT_PATH = "/v1/payment"
+DEFAULT_FINIK_MERCHANT_CATEGORY_CODE = "0742"
+DEFAULT_FINIK_QR_NAME = "Opus"
+DEFAULT_FINIK_REQUEST_TIMEOUT_SEC = 20
 
 
 class FinikConfigError(RuntimeError):
@@ -54,8 +57,8 @@ def _read_pem_value(value: str | None, path: str | None, label: str) -> str:
 
 def _load_private_key():
     private_key_value = _read_pem_value(
-        settings.FENIK_PRIVATE_KEY,
-        settings.FENIK_PRIVATE_KEY_PATH,
+        settings.FINIK_PRIVATE_KEY,
+        settings.FINIK_PRIVATE_KEY_PATH,
         "приватный ключ Finik",
     )
     try:
@@ -68,12 +71,12 @@ def _load_private_key():
 
 
 def _load_public_key():
-    if not settings.FENIK_PUBLIC_KEY and not settings.FENIK_PUBLIC_KEY_PATH:
+    if not settings.FINIK_PUBLIC_KEY and not settings.FINIK_PUBLIC_KEY_PATH:
         return None
 
     public_key_value = _read_pem_value(
-        settings.FENIK_PUBLIC_KEY,
-        settings.FENIK_PUBLIC_KEY_PATH,
+        settings.FINIK_PUBLIC_KEY,
+        settings.FINIK_PUBLIC_KEY_PATH,
         "публичный ключ Finik",
     )
     try:
@@ -83,7 +86,7 @@ def _load_public_key():
 
 
 def is_webhook_verification_configured() -> bool:
-    return bool(settings.FENIK_PUBLIC_KEY or settings.FENIK_PUBLIC_KEY_PATH)
+    return bool(settings.FINIK_PUBLIC_KEY or settings.FINIK_PUBLIC_KEY_PATH)
 
 
 def build_webhook_url(base_url: str, payment_id: str) -> str:
@@ -227,29 +230,25 @@ def create_payment_link(
     start_date: int | None = None,
     end_date: int | None = None,
 ) -> FinikCreatePaymentResult:
-    api_key = settings.FENIK_PAY_API_KEY
-    account_id = settings.FENIK_ACCOUNT_ID or settings.FENIK_PAY_MERCHANT_ID
-    mcc = settings.FENIK_MERCHANT_CATEGORY_CODE
-    qr_name = settings.FENIK_QR_NAME
-    base_url = settings.FENIK_API_BASE_URL.strip().rstrip("/")
+    api_key = settings.FINIK_API_KEY
+    account_id = settings.FINIK_ACCOUNT_ID
+    mcc = DEFAULT_FINIK_MERCHANT_CATEGORY_CODE
+    qr_name = DEFAULT_FINIK_QR_NAME
+    base_url = settings.FINIK_API_BASE_URL.strip().rstrip("/")
 
     missing: list[str] = []
     if not api_key:
-        missing.append("FENIK_PAY_API_KEY")
+        missing.append("FINIK_API_KEY")
     if not account_id:
-        missing.append("FENIK_ACCOUNT_ID (или FENIK_PAY_MERCHANT_ID)")
-    if not mcc:
-        missing.append("FENIK_MERCHANT_CATEGORY_CODE")
-    if not qr_name:
-        missing.append("FENIK_QR_NAME")
+        missing.append("FINIK_ACCOUNT_ID")
     if not base_url:
-        missing.append("FENIK_API_BASE_URL")
+        missing.append("FINIK_API_BASE_URL")
     if missing:
         raise FinikConfigError("Не хватает настроек Finik: " + ", ".join(missing))
 
     parsed_base = urlsplit(base_url)
     if parsed_base.scheme not in ("http", "https") or not parsed_base.netloc:
-        raise FinikConfigError("Некорректный FENIK_API_BASE_URL")
+        raise FinikConfigError("Некорректный FINIK_API_BASE_URL")
     host = parsed_base.netloc
 
     timestamp = str(int(time.time() * 1000))
@@ -305,7 +304,7 @@ def create_payment_link(
             headers=request_headers,
             data=body_json.encode("utf-8"),
             allow_redirects=False,
-            timeout=max(settings.FENIK_REQUEST_TIMEOUT_SEC, 1),
+            timeout=DEFAULT_FINIK_REQUEST_TIMEOUT_SEC,
         )
     except requests.RequestException as exc:
         raise FinikRequestError("Не удалось связаться с Finik API") from exc

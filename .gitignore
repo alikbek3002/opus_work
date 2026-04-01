@@ -46,3 +46,6 @@ pnpm-debug.log*
 *.db
 tmp/
 temp/
+
+# Local payment keys
+server/keys/*.pem

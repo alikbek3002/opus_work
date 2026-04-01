@@ -93,7 +93,7 @@ async def create_payment(
 
     payment_id = payment.data[0]["id"]
     redirect_url = f"{settings.APP_URL.rstrip('/')}/tariffs?payment=success&payment_id={payment_id}"
-    callback_base_url = settings.FENIK_WEBHOOK_URL or str(request.url_for("payment_callback"))
+    callback_base_url = settings.FINIK_WEBHOOK_URL or str(request.url_for("payment_callback"))
     callback_url = build_webhook_url(callback_base_url, payment_id)
 
     try:
@@ -139,13 +139,13 @@ async def payment_callback(
         raise HTTPException(status_code=400, detail="Некорректный JSON в callback Finik") from exc
 
     signature = request.headers.get("signature")
-    if settings.FENIK_VERIFY_SIGNATURE:
+    if settings.FINIK_VERIFY_SIGNATURE:
         if not signature:
             raise HTTPException(status_code=401, detail="Отсутствует подпись callback")
         if not is_webhook_verification_configured():
             raise HTTPException(
                 status_code=500,
-                detail="FENIK_VERIFY_SIGNATURE=true, но не задан публичный ключ Finik",
+                detail="FINIK_VERIFY_SIGNATURE=true, но не задан публичный ключ Finik",
             )
         try:
             is_valid_signature = verify_webhook_signature(
