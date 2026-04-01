@@ -159,7 +159,7 @@ async def view_employee(
     now_iso = datetime.utcnow().isoformat()
     subscription = (
         supabase.table("subscriptions")
-        .select("*")
+        .select("*, tariff_plans(period)")
         .eq("employer_id", employer_id)
         .eq("is_active", True)
         .gt("cards_remaining", 0)
@@ -177,16 +177,6 @@ async def view_employee(
 
     sub = subscription.data[0]
     daily_limit = get_daily_limit((sub.get("tariff_plans") or {}).get("period"))
-    if daily_limit is None:
-        tariff_response = (
-            supabase.table("tariff_plans")
-            .select("period")
-            .eq("id", sub["tariff_id"])
-            .limit(1)
-            .execute()
-        )
-        tariff_period = tariff_response.data[0]["period"] if tariff_response.data else None
-        daily_limit = get_daily_limit(tariff_period)
 
     if daily_limit is not None:
         daily_views_used = get_daily_views_used(

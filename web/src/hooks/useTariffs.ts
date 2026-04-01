@@ -28,6 +28,9 @@ export function useSubscription() {
         queryKey: queryKeys.subscription.current(),
         queryFn: () => api.getSubscription(),
         staleTime: 30 * 1000, // 30 секунд
+        placeholderData: (previousData) => previousData,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
         enabled: !!token, // Не запрашивать, если нет токена
     });
 }

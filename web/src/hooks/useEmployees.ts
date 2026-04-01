@@ -9,6 +9,7 @@ import {
     type EmployeeCard,
     type EmployeeFullProfile,
     type EmployeeQueryParams,
+    type Subscription,
     type ViewedEmployeeHistoryItem,
     type ViewedEmployeesResponse,
 } from '../lib/api';
@@ -75,6 +76,31 @@ export function useViewEmployee() {
     return useMutation({
         mutationFn: (employeeId: string) => api.viewEmployee(employeeId),
         onSuccess: (data: EmployeeFullProfile, employeeId: string) => {
+            queryClient.setQueryData<Subscription | null>(
+                queryKeys.subscription.current(),
+                (previous) => {
+                    if (!previous) return previous;
+
+                    const alreadyViewed = (queryClient.getQueryData<ViewedEmployeesResponse>(
+                        queryKeys.employees.viewed()
+                    )?.viewed_ids ?? []).includes(employeeId);
+
+                    if (alreadyViewed) return previous;
+
+                    return {
+                        ...previous,
+                        cards_remaining: Math.max(previous.cards_remaining - 1, 0),
+                        daily_views_used:
+                            previous.daily_views_used == null
+                                ? previous.daily_views_used
+                                : previous.daily_views_used + 1,
+                        daily_views_remaining:
+                            previous.daily_views_remaining == null
+                                ? previous.daily_views_remaining
+                                : Math.max(previous.daily_views_remaining - 1, 0),
+                    };
+                }
+            );
             // Кэшируем полный профиль
             queryClient.setQueryData(
                 queryKeys.employees.detail(employeeId),

@@ -98,14 +98,16 @@ export default function Layout() {
 
                         {isAuthenticated ? (
                             <div className="flex items-center gap-3 sm:gap-4">
-                                <span className="hidden md:inline text-xs text-muted-foreground">
-                                    Остаток: <span className="font-semibold text-foreground">{subscription?.cards_remaining ?? 0}</span>
+                                <div className="hidden sm:flex flex-col items-end text-[11px] leading-tight text-muted-foreground">
+                                    <span>
+                                        Остаток: <span className="font-semibold text-foreground">{subscription?.cards_remaining ?? 0}</span>
+                                    </span>
                                     {subscription?.daily_limit ? (
-                                        <>
-                                            {" "}• Сегодня: <span className="font-semibold text-foreground">{subscription.daily_views_remaining ?? 0}/{subscription.daily_limit}</span>
-                                        </>
+                                        <span>
+                                            Сегодня: <span className="font-semibold text-foreground">{subscription.daily_views_remaining ?? 0}/{subscription.daily_limit}</span>
+                                        </span>
                                     ) : null}
-                                </span>
+                                </div>
                                 <button
                                     onClick={() => setIsSettingsModalOpen(true)}
                                     className="text-xs sm:text-sm font-medium hover:text-primary transition-colors flex items-center gap-1.5 sm:gap-2"
