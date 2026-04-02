@@ -795,20 +795,20 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
     employee_data = {
         "telegram_id": query.from_user.id,
         "telegram_username": data.get("telegram_username"),
-        "full_name": data["full_name"],
-        "age": data["age"],
-        "gender": data["gender"],
+        "full_name": data.get("full_name", "Не указано"),
+        "age": data.get("age"),
+        "gender": data.get("gender"),
         "photo_file_id": data.get("photo_file_id"),
-        "specializations": data["specializations"],
-        "experience": data["experience"],
-        "district": data["district"],
-        "employment_type": data["employment_type"],
+        "specializations": data.get("specializations"),
+        "experience": data.get("experience"),
+        "district": data.get("district"),
+        "employment_type": data.get("employment_type"),
         "schedule": data.get("schedule"),
-        "has_sanitary_book": data["has_sanitary_book"],
-        "about_me": data["about_me"],
+        "has_sanitary_book": data.get("has_sanitary_book"),
+        "about_me": data.get("about_me"),
         "has_recommendations": None,
-        "phone_number": data["phone_number"],
-        "has_whatsapp": data["has_whatsapp"],
+        "phone_number": data.get("phone_number"),
+        "has_whatsapp": data.get("has_whatsapp"),
         "is_verified": False,
         "verification_status": "pending",
     }
@@ -828,8 +828,13 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
         # Сохраняем остальные данные в Supabase
         saved_employee = save_employee(employee_data)
 
-        from verification_notifier import notify_new_employee
-        await notify_new_employee(saved_employee)
+        try:
+            from verification_notifier import notify_new_employee
+            logger.info("Отправляем анкету на верификацию для employee_id=%s", saved_employee.get("id"))
+            await notify_new_employee(saved_employee)
+            logger.info("Уведомление о новой анкете отправлено успешно")
+        except Exception as notify_err:
+            logger.error("Ошибка при отправке уведомления верификатору: %s", notify_err)
         
         await query.edit_message_text(
             "✅ *Анкета отправлена!*\n\n"
