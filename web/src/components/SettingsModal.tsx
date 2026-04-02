@@ -37,6 +37,7 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
         if (period === "day") return "1 день";
         if (period === "week") return "Неделя";
         if (period === "month") return "Месяц";
+        if (period === "quarter") return "90 дней";
         return "Не указан";
     };
 

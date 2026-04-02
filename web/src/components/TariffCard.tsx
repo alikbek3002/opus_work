@@ -14,11 +14,15 @@ export default function TariffCard({ tariff, isPopular, onSelect }: Props) {
         ? 'День'
         : tariff.period === 'week'
             ? 'Неделя'
-            : 'Месяц';
+            : tariff.period === 'month'
+                ? 'Месяц'
+                : 'Квартал';
 
     const durationLabel = tariff.period === 'day'
         ? '1 день'
-        : `1 ${periodLabel.toLowerCase()}`;
+        : tariff.period === 'quarter'
+            ? '90 дней'
+            : `1 ${periodLabel.toLowerCase()}`;
 
     return (
         <PricingCard.Card className="flex flex-col h-full">
@@ -36,7 +40,7 @@ export default function TariffCard({ tariff, isPopular, onSelect }: Props) {
                 <PricingCard.Price>
                     <PricingCard.MainPrice>{tariff.price.toLocaleString()}</PricingCard.MainPrice>
                     <span className="text-xl font-bold ml-1">сом</span>
-                    <PricingCard.Period>/{tariff.period === 'day' ? 'день' : periodLabel.toLowerCase()}</PricingCard.Period>
+                    <PricingCard.Period>/{tariff.period === 'day' ? 'день' : tariff.period === 'quarter' ? '90 дней' : periodLabel.toLowerCase()}</PricingCard.Period>
                 </PricingCard.Price>
 
                 <div className="mt-4 flex-grow">

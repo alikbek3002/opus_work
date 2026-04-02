@@ -25,17 +25,17 @@ CHECK (period IN ('day', 'week', 'month', 'quarter'));
 
 UPDATE public.tariff_plans
 SET
-    name = '1 день',
-    card_limit = 3,
-    price = 490,
-    description = '3 контакта на 1 день',
+    name = 'КВАРТАЛЬНЫЙ 💎 Оптимальный',
+    card_limit = 180,
+    price = 11900,
+    description = '180 контактов, лимит 15 в день, срок 90 дней',
     is_active = TRUE
-WHERE period = 'day';
+WHERE period = 'quarter';
 
 INSERT INTO public.tariff_plans (name, period, card_limit, price, description, is_active)
-SELECT '1 день', 'day', 3, 490, '3 контакта на 1 день', TRUE
+SELECT 'КВАРТАЛЬНЫЙ 💎 Оптимальный', 'quarter', 180, 11900, '180 контактов, лимит 15 в день, срок 90 дней', TRUE
 WHERE NOT EXISTS (
     SELECT 1
     FROM public.tariff_plans
-    WHERE period = 'day'
+    WHERE period = 'quarter'
 );

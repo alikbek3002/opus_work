@@ -30,10 +30,10 @@ export default function Tariffs() {
     };
 
     const orderedTariffs = (tariffs as any[])
-        .filter((t) => t.period === 'day' || t.period === 'week' || t.period === 'month')
+        .filter((t) => t.period === 'day' || t.period === 'week' || t.period === 'month' || t.period === 'quarter')
         .sort((a, b) => {
-            const order = { day: 0, week: 1, month: 2 } as const;
-            return order[a.period as 'day' | 'week' | 'month'] - order[b.period as 'day' | 'week' | 'month'];
+            const order = { day: 0, week: 1, month: 2, quarter: 3 } as const;
+            return order[a.period as 'day' | 'week' | 'month' | 'quarter'] - order[b.period as 'day' | 'week' | 'month' | 'quarter'];
         });
 
     if (isPending) {
@@ -49,7 +49,7 @@ export default function Tariffs() {
         <div className="flex flex-col gap-10 w-full animate-in fade-in duration-500">
             <div className="text-center max-w-2xl mx-auto space-y-4 px-4 sm:px-0 mt-4">
                 <div className="inline-block bg-primary/10 border border-primary/20 text-primary font-medium text-sm px-4 py-1 rounded-full mb-2">
-                    🔥 Специальные цены 1900/4900 сом действуют только для первых 50 зарегистрированных пользователей!
+                    🔥 Специальные цены 1900/4900/11900 сом действуют только для первых 50 зарегистрированных пользователей!
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Тарифные планы</h1>
                 <p className="text-muted-foreground text-base sm:text-lg">
@@ -89,7 +89,7 @@ export default function Tariffs() {
                 <SquishyPricing
                     tariffs={orderedTariffs}
                     onSelect={handleSelectTariff}
-                    isPopularIndex={1}
+                    isPopularIndex={orderedTariffs.findIndex((tariff) => tariff.period === 'month')}
                 />
             </div>
         </div>

@@ -39,6 +39,12 @@ export const SquishyPricing = ({ tariffs, onSelect, isPopularIndex = 1 }: Pricin
         bgComponent: BGComponent1,
       };
     }
+    if (tariff.period === "quarter") {
+      return {
+        bgColor: "bg-red-600 dark:bg-red-700",
+        bgComponent: BGComponent1,
+      };
+    }
 
     const backgroundComponents = [BGComponent1, BGComponent2, BGComponent3];
     const backgroundColors = [
@@ -55,6 +61,7 @@ export const SquishyPricing = ({ tariffs, onSelect, isPopularIndex = 1 }: Pricin
   const getOldPrice = (tariff: TariffPlan) => {
     if (tariff.period === "week") return 2900;
     if (tariff.period === "month") return 6900;
+    if (tariff.period === "quarter") return 19900;
     return undefined;
   };
 

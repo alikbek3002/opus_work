@@ -292,6 +292,7 @@ async def payment_callback(
             "day": 1,
             "week": 7,
             "month": 30,
+            "quarter": 90,
         }.get(tariff["period"], 30)
         starts_at = datetime.now(timezone.utc)
         expires_at = starts_at + timedelta(days=period_days)

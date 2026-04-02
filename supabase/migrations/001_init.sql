@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS employers (
 CREATE TABLE IF NOT EXISTS tariff_plans (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,               -- «Неделя», «Месяц»
-    period TEXT NOT NULL CHECK (period IN ('day', 'week', 'month')),
+    period TEXT NOT NULL CHECK (period IN ('day', 'week', 'month', 'quarter')),
     card_limit INTEGER NOT NULL,       -- Лимит просмотров карточек
     price INTEGER NOT NULL,            -- Цена в сомах
     description TEXT,
@@ -189,6 +189,16 @@ WHERE NOT EXISTS (
     WHERE period = 'month'
       AND card_limit = 80
       AND price = 4900
+      AND is_active = TRUE
+)
+UNION ALL
+SELECT 'КВАРТАЛЬНЫЙ 💎 Оптимальный', 'quarter', 180, 11900, '180 контактов, лимит 15 в день, срок 90 дней', TRUE
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM tariff_plans
+    WHERE period = 'quarter'
+      AND card_limit = 180
+      AND price = 11900
       AND is_active = TRUE
 );
 

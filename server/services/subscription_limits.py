@@ -10,6 +10,7 @@ DAILY_LIMITS = {
     "day": 3,
     "week": 15,
     "month": 20,
+    "quarter": 15,
 }
 
 
