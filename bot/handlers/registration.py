@@ -806,7 +806,7 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
         "schedule": data.get("schedule"),
         "has_sanitary_book": data["has_sanitary_book"],
         "about_me": data["about_me"],
-        "has_recommendations": data["has_recommendations"],
+        "has_recommendations": None,
         "phone_number": data["phone_number"],
         "has_whatsapp": data["has_whatsapp"],
         "is_verified": False,
