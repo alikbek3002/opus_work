@@ -36,7 +36,7 @@ interface EmployeeDetailsDialogProps {
     onUnlock: (employeeId: string) => void | Promise<void>;
 }
 
-function displayValue(value?: string | number | null, fallback = "Не указано") {
+function displayValue(value?: string | number | null, fallback = "Не заполнено") {
     if (value === null || value === undefined || value === "") {
         return fallback;
     }

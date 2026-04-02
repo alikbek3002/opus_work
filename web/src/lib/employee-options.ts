@@ -1,5 +1,5 @@
 export const EMPLOYEE_DISTRICT_OPTIONS = [
-    "Бишкек",
+    "Бишкек (весь город)",
     "ЦУМ",
     "Бишкек Парк",
     "Филармония",
@@ -35,7 +35,7 @@ export const EMPLOYEE_DISTRICT_OPTIONS = [
 
 export const EMPLOYEE_SPECIALIZATION_OPTIONS = [
     "Официант",
-    "Повар универсал ",
+    "Повар универсал",
     "Кухработник",
     "Посудомойщица",
     "Бармен",

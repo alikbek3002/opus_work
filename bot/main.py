@@ -3,6 +3,7 @@ import asyncio
 from contextlib import suppress
 
 from telegram.ext import ApplicationBuilder
+from telegram import BotCommand
 
 from activity_signal import PROMPT_SCAN_INTERVAL_SECONDS, build_activity_signal_keyboard, build_activity_signal_prompt
 from config import settings
@@ -62,6 +63,13 @@ async def activity_prompt_loop(application) -> None:
 
 
 async def on_post_init(application) -> None:
+    commands = [
+        BotCommand("start", "Запустить бота"),
+        BotCommand("profile", "Моя анкета"),
+        BotCommand("update", "Редактировать анкету"),
+        BotCommand("help", "Помощь")
+    ]
+    await application.bot.set_my_commands(commands)
     application.bot_data["activity_prompt_task"] = asyncio.create_task(activity_prompt_loop(application))
 
 
