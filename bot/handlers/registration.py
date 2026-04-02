@@ -891,7 +891,7 @@ def get_registration_handler() -> ConversationHandler:
             AGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, age_handler)],
             GENDER: [MessageHandler(filters.TEXT & ~filters.COMMAND, gender_handler)],
             PHOTO: [
-                MessageHandler(filters.PHOTO, photo_handler),
+                MessageHandler((filters.PHOTO | filters.TEXT) & ~filters.COMMAND, photo_handler),
                 MessageHandler(filters.ALL & ~filters.COMMAND, photo_required_handler),
             ],
             SPECIALIZATIONS: [

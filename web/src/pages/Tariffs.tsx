@@ -127,6 +127,9 @@ export default function Tariffs() {
                                     <PricingCard.Price>
                                         <PricingCard.MainPrice>{tariff.price.toLocaleString()}</PricingCard.MainPrice>
                                         <PricingCard.Period>сом / {getDurationText(tariff.period)}</PricingCard.Period>
+                                        {(tariff.period === 'week') && <PricingCard.OriginalPrice>2,900</PricingCard.OriginalPrice>}
+                                        {(tariff.period === 'month') && <PricingCard.OriginalPrice>7,900</PricingCard.OriginalPrice>}
+                                        {(tariff.period === 'quarter') && <PricingCard.OriginalPrice>19,900</PricingCard.OriginalPrice>}
                                     </PricingCard.Price>
                                     <Button
                                         variant={isPopular ? "default" : "outline"}
@@ -161,6 +164,12 @@ export default function Tariffs() {
                                             <CheckCircle className="text-primary w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
                                             <span><strong>{getDurationText(tariff.period)}</strong> доступа</span>
                                         </PricingCard.ListItem>
+                                        {tariff.daily_limit && (
+                                            <PricingCard.ListItem>
+                                                <CheckCircle className="text-primary w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+                                                <span>Лимит: <strong>{tariff.daily_limit} контактов/день</strong></span>
+                                            </PricingCard.ListItem>
+                                        )}
                                         {tariff.period !== 'day' && (
                                             <PricingCard.ListItem>
                                                 <CheckCircle className="text-primary w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
