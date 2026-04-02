@@ -5,6 +5,7 @@ interface PricingProps {
   tariffs: TariffPlan[];
   onSelect: (id: string) => void;
   isPopularIndex?: number;
+  loadingTariffId?: string | null;
 }
 
 interface PricingCardProps {
@@ -12,14 +13,18 @@ interface PricingCardProps {
   price: number;
   oldPrice?: number;
   description: string;
+  contactsLine: string;
+  dailyLimitLine?: string;
+  durationLine: string;
   cta: string;
   background: string;
   BGComponent: React.FC;
   onSelect: () => void;
   isPopular: boolean;
+  isLoading: boolean;
 }
 
-export const SquishyPricing = ({ tariffs, onSelect, isPopularIndex = 1 }: PricingProps) => {
+export const SquishyPricing = ({ tariffs, onSelect, isPopularIndex = 1, loadingTariffId = null }: PricingProps) => {
   const getThemeByTariff = (tariff: TariffPlan, index: number) => {
     if (tariff.period === "day") {
       return {
@@ -65,6 +70,22 @@ export const SquishyPricing = ({ tariffs, onSelect, isPopularIndex = 1 }: Pricin
     return undefined;
   };
 
+  const getDurationLine = (tariff: TariffPlan) => {
+    if (tariff.period === "day") return "на 1 день";
+    if (tariff.period === "week") return "на 7 дней";
+    if (tariff.period === "month") return "на 30 дней";
+    if (tariff.period === "quarter") return "на 90 дней";
+    return `на ${tariff.period}`;
+  };
+
+  const getDailyLimitLine = (tariff: TariffPlan) => {
+    if (tariff.period === "day") return "лимит: 3 контакта/день";
+    if (tariff.period === "week") return "лимит: 15 контактов/день";
+    if (tariff.period === "month") return "лимит: 20 контактов/день";
+    if (tariff.period === "quarter") return "лимит: 15 контактов/день";
+    return undefined;
+  };
+
   return (
     <section className="bg-background px-4 py-12 transition-colors">
       <div className="mx-auto flex w-fit flex-wrap justify-center gap-6 md:gap-8">
@@ -77,6 +98,9 @@ export const SquishyPricing = ({ tariffs, onSelect, isPopularIndex = 1 }: Pricin
               label={tariff.name}
               price={tariff.price}
               oldPrice={getOldPrice(tariff)}
+              contactsLine={`${tariff.card_limit} контактов`}
+              dailyLimitLine={getDailyLimitLine(tariff)}
+              durationLine={getDurationLine(tariff)}
               description={
                 tariff.description
                   ? tariff.description
@@ -87,6 +111,7 @@ export const SquishyPricing = ({ tariffs, onSelect, isPopularIndex = 1 }: Pricin
               BGComponent={bgComponent}
               onSelect={() => onSelect(tariff.id)}
               isPopular={index === isPopularIndex}
+              isLoading={loadingTariffId === tariff.id}
             />
           );
         })}
@@ -95,7 +120,21 @@ export const SquishyPricing = ({ tariffs, onSelect, isPopularIndex = 1 }: Pricin
   );
 };
 
-const PricingCard = ({ label, price, oldPrice, description, cta, background, BGComponent, onSelect, isPopular }: PricingCardProps) => {
+const PricingCard = ({
+  label,
+  price,
+  oldPrice,
+  description,
+  contactsLine,
+  dailyLimitLine,
+  durationLine,
+  cta,
+  background,
+  BGComponent,
+  onSelect,
+  isPopular,
+  isLoading,
+}: PricingCardProps) => {
   return (
     <motion.div
       whileHover="hover"
@@ -127,13 +166,28 @@ const PricingCard = ({ label, price, oldPrice, description, cta, background, BGC
             </span>
           )}
         </div>
-        <p className="text-sm text-white/90 mt-2 flex-grow">{description}</p>
+        <div className="mt-4 rounded-2xl border border-white/20 bg-white/12 p-4 backdrop-blur-sm">
+          <div className="text-lg font-black tracking-tight text-white">{contactsLine}</div>
+          {dailyLimitLine ? (
+            <div className="mt-1 text-sm font-medium text-white/85">{dailyLimitLine}</div>
+          ) : null}
+          <div className="mt-1 text-sm font-medium text-white/85">{durationLine}</div>
+        </div>
+        <p className="mt-4 text-sm leading-6 text-white/90 flex-grow">{description}</p>
       </div>
       <button
         onClick={onSelect}
-        className="absolute bottom-4 left-4 right-4 z-20 rounded-lg border-2 border-white bg-white py-2 text-center font-mono font-black uppercase text-neutral-800 backdrop-blur-sm transition-all duration-200 hover:bg-white/10 hover:text-white hover:border-white/80 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent"
+        disabled={isLoading}
+        className="absolute bottom-4 left-4 right-4 z-20 inline-flex items-center justify-center gap-2 rounded-lg border-2 border-white bg-white py-2 text-center font-mono font-black uppercase text-neutral-800 backdrop-blur-sm transition-all duration-200 hover:bg-white/10 hover:text-white hover:border-white/80 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent disabled:cursor-wait disabled:bg-white/85 disabled:text-neutral-700 disabled:hover:border-white"
       >
-        {cta}
+        {isLoading ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-400 border-t-neutral-800" />
+            Генерируем оплату...
+          </>
+        ) : (
+          cta
+        )}
       </button>
       <BGComponent />
     </motion.div>

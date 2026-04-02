@@ -2,10 +2,12 @@ import { useTariffs, useSubscription, useCreatePayment } from '../hooks/useTarif
 import { SquishyPricing } from '../components/ui/squishy-pricing';
 import { useAuth } from '../hooks/useAuth';
 import { useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
 
 export default function Tariffs() {
     const { isAuthenticated } = useAuth();
     const [searchParams] = useSearchParams();
+    const [loadingTariffId, setLoadingTariffId] = useState<string | null>(null);
 
     const { data: tariffs = [], isPending, isError, error } = useTariffs();
     const { data: subscription } = useSubscription();
@@ -19,6 +21,7 @@ export default function Tariffs() {
         }
 
         try {
+            setLoadingTariffId(tariffId);
             const result = await paymentMutation.mutateAsync(tariffId);
             if (!result.payment_url) {
                 throw new Error('Не удалось получить ссылку на оплату. Попробуйте ещё раз.');
@@ -26,6 +29,8 @@ export default function Tariffs() {
             window.location.assign(result.payment_url);
         } catch {
             // Ошибка показывается ниже
+        } finally {
+            setLoadingTariffId(null);
         }
     };
 
@@ -90,6 +95,7 @@ export default function Tariffs() {
                     tariffs={orderedTariffs}
                     onSelect={handleSelectTariff}
                     isPopularIndex={orderedTariffs.findIndex((tariff) => tariff.period === 'month')}
+                    loadingTariffId={loadingTariffId}
                 />
             </div>
         </div>
