@@ -1,26 +1,21 @@
 import {
     BadgeCheck,
-    BriefcaseBusiness,
-    Clock3,
     MessageCircleMore,
     Phone,
-    ShieldCheck,
-    Smartphone,
     Send,
-    UserRound,
+    Smartphone,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
 import { getPhotoUrl, type EmployeeCard, type EmployeeFullProfile } from "@/lib/api";
 import EmployeeActivityBadge from "@/components/EmployeeActivityBadge";
-import VerificationBadge, { getVerificationLabel, normalizeVerificationStatus } from "@/components/VerificationBadge";
+import { getVerificationLabel, normalizeVerificationStatus } from "@/components/VerificationBadge";
 
 interface EmployeeDetailsDialogProps {
     open: boolean;
@@ -77,7 +72,6 @@ export default function EmployeeDetailsDialog({
 
     const _telegramIdFull = unlockedProfile?.telegram_id ?? null;
     const photoTelegramId = unlockedProfile?.telegram_id ?? employee.telegram_id ?? null;
-    // Используем telegramUsername или telegramId только из ПОЛНОГО профиля для связи
     const telegramUsername = unlockedProfile?.telegram_username?.replace(/^@/, "") || null;
     const telegramLink = telegramUsername
         ? `https://t.me/${telegramUsername}`
@@ -107,226 +101,183 @@ export default function EmployeeDetailsDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-3xl w-[95vw] sm:w-full p-0 overflow-hidden border shadow-xl rounded-xl bg-background">
-                <DialogHeader className="px-4 pt-6 pb-3 sm:px-8 sm:pt-8 sm:pb-4 relative z-10 border-b border-border/40 bg-muted/10">
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            {photoTelegramId ? (
-                                <div className="relative h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-full border-2 border-primary/20 bg-muted shrink-0 shadow-sm">
-                                    <img
-                                        src={getPhotoUrl(photoTelegramId)}
-                                        alt={employee.full_name}
-                                        className="h-full w-full object-cover"
-                                        onError={(e) => {
-                                            (e.currentTarget.parentElement as HTMLElement).innerHTML = `<div class="flex h-full w-full items-center justify-center overflow-hidden bg-white p-2"><img src="/logo.png" alt="Opus" class="h-full w-full object-contain" /></div>`
-                                        }}
-                                    />
-                                </div>
-                            ) : (
-                                <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full border-2 border-primary/20 bg-muted text-muted-foreground shrink-0 shadow-sm overflow-hidden p-2 bg-white">
-                                    <img src="/logo.png" alt="Opus" className="h-full w-full object-contain" />
-                                </div>
-                            )}
-                            <div>
-                                <DialogTitle className="flex items-center gap-2 text-2xl sm:text-3xl font-bold tracking-tight">
-                                    {employee.full_name}
-                                    {employee.is_verified ? <BadgeCheck className="h-6 w-6 text-emerald-500" /> : null}
-                                </DialogTitle>
-                                <DialogDescription className="mt-2 text-base font-medium text-primary/80">
-                                    {employee.specializations || "Специализация уточняется"}
-                                </DialogDescription>
-                                <div className="mt-3">
-                                    <VerificationBadge
-                                        status={employee.verification_status}
-                                        isVerified={employee.is_verified}
-                                    />
-                                </div>
+            <DialogContent className="sm:max-w-3xl w-[95vw] sm:w-full p-0 overflow-hidden border-0 shadow-2xl rounded-2xl bg-background">
+                <DialogHeader className="p-6 sm:p-8 border-b border-border/30 bg-muted/20 relative">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6">
+                        {photoTelegramId ? (
+                            <img
+                                src={getPhotoUrl(photoTelegramId)}
+                                alt={employee.full_name}
+                                className="h-16 w-16 sm:h-24 sm:w-24 object-cover rounded-full border-2 border-border/50 bg-background shadow-sm shrink-0"
+                                onError={(e) => {
+                                    (e.currentTarget.parentElement as HTMLElement).innerHTML = `<div class="flex h-16 w-16 sm:h-24 sm:w-24 items-center justify-center overflow-hidden bg-white p-3 rounded-full border-2 border-border/50"><img src="/logo.png" alt="Opus" class="h-full w-full object-contain" /></div>`
+                                }}
+                            />
+                        ) : (
+                            <div className="flex h-16 w-16 sm:h-24 sm:w-24 items-center justify-center rounded-full border-2 border-border/50 bg-white shrink-0 p-3 shadow-sm">
+                                <img src="/logo.png" alt="Opus" className="h-full w-full object-contain" />
                             </div>
+                        )}
+                        <div className="space-y-1.5 w-full">
+                            <DialogTitle className="flex flex-wrap items-center gap-2 text-2xl sm:text-3xl font-extrabold text-foreground leading-tight">
+                                <span>{employee.full_name} — {employee.age || "?"} лет</span>
+                                {employee.is_verified && <BadgeCheck className="h-6 w-6 text-emerald-500 shrink-0" />}
+                            </DialogTitle>
+                            <p className="text-lg font-medium text-primary">
+                                {employee.specializations || "Специализация уточняется"}
+                            </p>
+                            <EmployeeActivityBadge
+                                employmentType={activityEmploymentType}
+                                activitySignal={activitySignal}
+                                activitySignalUpdatedAt={activitySignalUpdatedAt}
+                                compact
+                            />
                         </div>
                     </div>
                 </DialogHeader>
 
-                <div className="px-4 py-4 sm:px-8 sm:py-6 space-y-5 sm:space-y-8 relative z-10 max-h-[85vh] sm:max-h-[75vh] overflow-y-auto">
+                <div className="px-6 py-6 sm:px-8 sm:py-8 max-h-[75vh] overflow-y-auto">
+                    <div className="space-y-8">
+                        <section>
+                            <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">Информация</h4>
+                            <dl className="divide-y divide-border/40">
+                                <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
+                                    <dt className="text-sm font-medium text-muted-foreground">Пол</dt>
+                                    <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(employee.gender)}</dd>
+                                </div>
+                                <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
+                                    <dt className="text-sm font-medium text-muted-foreground">Район</dt>
+                                    <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(employee.district)}</dd>
+                                </div>
+                                <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
+                                    <dt className="text-sm font-medium text-muted-foreground">Опыт работы</dt>
+                                    <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(employee.experience)}</dd>
+                                </div>
+                                <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
+                                    <dt className="text-sm font-medium text-muted-foreground">О себе</dt>
+                                    <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 whitespace-pre-wrap leading-relaxed">{displayValue(unlockedProfile?.about_me)}</dd>
+                                </div>
+                            </dl>
+                        </section>
 
-                    <div className="grid gap-3 sm:gap-4 sm:grid-cols-3">
-                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
-                            <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground">Возраст</p>
-                            <p className="mt-2 text-2xl font-bold">{displayValue(employee.age)}</p>
-                        </div>
-                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
-                            <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground">Пол</p>
-                            <p className="mt-2 text-2xl font-bold">{displayValue(employee.gender)}</p>
-                        </div>
-                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
-                            <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground">Район</p>
-                            <p className="mt-2 text-2xl font-bold truncate">{displayValue(employee.district)}</p>
-                        </div>
-                    </div>
+                        <section>
+                            <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">Детали занятости</h4>
+                            <dl className="divide-y divide-border/40">
+                                <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
+                                    <dt className="text-sm font-medium text-muted-foreground">Занятость</dt>
+                                    <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{displayValue(activityEmploymentType)}</dd>
+                                </div>
+                                <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
+                                    <dt className="text-sm font-medium text-muted-foreground">Готовность к выходным</dt>
+                                    <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{displayYesNo(unlockedProfile?.ready_for_weekends)}</dd>
+                                </div>
+                                <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
+                                    <dt className="text-sm font-medium text-muted-foreground">Рекомендации</dt>
+                                    <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{displayYesNo(unlockedProfile?.has_recommendations)}</dd>
+                                </div>
+                            </dl>
+                        </section>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
-                            <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                                <BriefcaseBusiness className="h-4 w-4 text-primary" />
-                                Профессия
-                            </div>
-                            <p className="text-sm leading-6 text-muted-foreground">
-                                {displayValue(employee.specializations)}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
-                            <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                                <ShieldCheck className="h-4 w-4 text-primary" />
-                                Статус в базе
-                            </div>
-                            <p className="text-sm leading-6 text-muted-foreground">
-                                {verificationStatus === "verified"
-                                    ? "Полностью верифицирован у работника."
-                                    : verificationStatus === "rejected"
-                                        ? "Анкета есть в базе, но ручную верификацию не прошла."
-                                        : "Анкета находится на ручной проверке."}
-                            </p>
-                            <p className="mt-2 text-xs font-medium text-foreground/80">
-                                Текущий статус: {getVerificationLabel(employee.verification_status, employee.is_verified)}
-                            </p>
-                            {unlockedProfile?.verification_rejected_reason ? (
-                                <p className="mt-2 text-xs text-muted-foreground">
-                                    Причина отклонения: {unlockedProfile.verification_rejected_reason}
+                        <section className="rounded-xl border border-border/40 bg-muted/10 p-5 mt-4">
+                            <h4 className="text-sm font-semibold text-foreground mb-2">Статус в базе</h4>
+                            <div className="text-sm text-muted-foreground space-y-1">
+                                <p>
+                                    {verificationStatus === "verified"
+                                        ? "Анкета полностью проверена и подтверждена нашими модераторами."
+                                        : verificationStatus === "rejected"
+                                            ? "Анкета не прошла проверку у модератора."
+                                            : "Анкета находится на этапе ручной проверки."}
                                 </p>
-                            ) : null}
-                        </div>
-
-                        <EmployeeActivityBadge
-                            employmentType={activityEmploymentType}
-                            activitySignal={activitySignal}
-                            activitySignalUpdatedAt={activitySignalUpdatedAt}
-                        />
-
-                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
-                            <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                                <UserRound className="h-4 w-4 text-primary" />
-                                Опыт работы
+                                {unlockedProfile?.verification_rejected_reason ? (
+                                    <p className="text-xs text-destructive pt-1">
+                                        Причина: {unlockedProfile.verification_rejected_reason}
+                                    </p>
+                                ) : null}
                             </div>
-                            <p className="text-sm leading-6 text-muted-foreground">
-                                {displayValue(employee.experience)}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
-                            <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                                <Clock3 className="h-4 w-4 text-primary" />
-                                Занятость
-                            </div>
-                            <p className="text-sm leading-6 text-muted-foreground">
-                                {displayValue(activityEmploymentType)}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
-                            <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                                <Clock3 className="h-4 w-4 text-primary" />
-                                Готовность к выходным
-                            </div>
-                            <p className="text-sm leading-6 text-muted-foreground">
-                                {displayYesNo(unlockedProfile?.ready_for_weekends)}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 shadow-sm">
-                            <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                                <ShieldCheck className="h-4 w-4 text-primary" />
-                                Рекомендации
-                            </div>
-                            <p className="text-sm leading-6 text-muted-foreground">
-                                {displayYesNo(unlockedProfile?.has_recommendations)}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 sm:col-span-2 shadow-sm">
-                            <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                                <UserRound className="h-4 w-4 text-primary" />
-                                О себе
-                            </div>
-                            <p className="text-sm leading-6 text-muted-foreground">
-                                {displayValue(unlockedProfile?.about_me)}
-                            </p>
-                        </div>
+                        </section>
                     </div>
 
-                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 shadow-sm">
-                        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2 text-base font-bold text-foreground">
+                    <div className="mt-8 rounded-xl border border-primary/20 bg-primary/5 p-6 sm:p-8">
+                        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="space-y-4 max-w-md">
+                                <div className="flex items-center gap-2 text-lg font-bold text-foreground">
                                     <MessageCircleMore className="h-5 w-5 text-primary" />
                                     Контакты и связь
                                 </div>
                                 {unlockedProfile ? (
-                                    <div className="space-y-2 text-sm text-muted-foreground">
-                                        <p className="font-medium text-primary">Контакты открыты. Можно написать кандидату напрямую.</p>
-                                        <div className="space-y-1.5 text-xs">
-                                            <p><strong className="text-foreground font-medium">Telegram:</strong> {telegramUsername ? `@${telegramUsername}` : _telegramIdFull ? `ID ${_telegramIdFull}` : "Не указан"}</p>
-                                            <p><strong className="text-foreground font-medium">Номер:</strong> {displayValue(unlockedProfile?.phone_number)}</p>
-                                            <p>
-                                                <strong className="text-foreground font-medium">WhatsApp:</strong> {unlockedProfile?.has_whatsapp ? "Есть" : "Нет, только обычный номер"}
-                                            </p>
+                                    <div className="space-y-3">
+                                        <p className="text-sm font-medium text-primary">Вы открыли контакт. Можно писать кандидату.</p>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-muted-foreground w-20">Telegram:</span>
+                                                <span className="font-semibold text-foreground">{telegramUsername ? `@${telegramUsername}` : _telegramIdFull ? `ID ${_telegramIdFull}` : "Не указан"}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-muted-foreground w-20">Телефон:</span>
+                                                <span className="font-semibold text-foreground">{displayValue(unlockedProfile?.phone_number)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-muted-foreground w-20">WhatsApp:</span>
+                                                <span className="font-semibold text-foreground">{unlockedProfile?.has_whatsapp ? "Доступен" : "Отсутствует"}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="space-y-1.5 text-sm text-muted-foreground">
-                                        <p>Часть данных анкеты закрыта. Для связи необходимо открыть контакт.</p>
-                                        <p className="text-xs font-semibold text-primary">{cardsInfo}</p>
+                                    <div className="space-y-2 text-sm text-muted-foreground">
+                                        <p>Часть данных анкеты закрыта. Для связи необходимо открыть контакт кандидата.</p>
+                                        <p className="font-medium text-primary bg-primary/10 inline-block px-3 py-1 rounded-md">{cardsInfo}</p>
                                     </div>
                                 )}
                             </div>
 
-                            {telegramLink || unlockedProfile?.phone_number ? (
-                                <div className="flex flex-col gap-3 min-w-0 sm:min-w-[240px] w-full sm:w-auto">
-                                    {telegramLink ? (
-                                        <Button asChild className="w-full h-11 rounded-lg shadow-md" variant="default">
-                                            <a href={telegramLink} target="_blank" rel="noreferrer">
-                                                <Send className="mr-2 h-4 w-4" />
-                                                Написать в Telegram
-                                            </a>
-                                        </Button>
-                                    ) : null}
-                                    {whatsappUrl ? (
-                                        <Button asChild className="w-full h-11 rounded-lg bg-[#25D366] hover:bg-[#20BE5A] text-white shadow-md">
-                                            <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                                                <Smartphone className="mr-2 h-4 w-4" />
-                                                Написать в WhatsApp
-                                            </a>
-                                        </Button>
-                                    ) : unlockedProfile?.phone_number ? (
-                                        <div className="rounded-lg border border-border/50 bg-card px-4 py-3 text-sm text-foreground shadow-sm">
-                                            <div className="flex items-center justify-center gap-2 font-bold">
-                                                <Phone className="h-4 w-4 text-primary" />
-                                                {unlockedProfile.phone_number}
+                            <div className="shrink-0 w-full sm:w-auto">
+                                {telegramLink || unlockedProfile?.phone_number ? (
+                                    <div className="flex flex-col gap-3 min-w-0 sm:min-w-[220px]">
+                                        {telegramLink ? (
+                                            <Button asChild className="w-full h-11 rounded-xl shadow-sm text-sm" variant="default">
+                                                <a href={telegramLink} target="_blank" rel="noreferrer">
+                                                    <Send className="mr-2 h-4 w-4" />
+                                                    Написать в Telegram
+                                                </a>
+                                            </Button>
+                                        ) : null}
+                                        {whatsappUrl ? (
+                                            <Button asChild className="w-full h-11 rounded-xl bg-[#25D366] hover:bg-[#20BE5A] text-white shadow-sm text-sm">
+                                                <a href={whatsappUrl} target="_blank" rel="noreferrer">
+                                                    <Smartphone className="mr-2 h-4 w-4" />
+                                                    Написать в WhatsApp
+                                                </a>
+                                            </Button>
+                                        ) : unlockedProfile?.phone_number ? (
+                                            <div className="rounded-xl border border-border/50 bg-card px-4 py-3 shadow-sm text-center">
+                                                <div className="flex items-center justify-center gap-2 font-bold text-base">
+                                                    <Phone className="h-4 w-4 text-primary" />
+                                                    {unlockedProfile.phone_number}
+                                                </div>
+                                                <p className="mt-1 text-xs text-muted-foreground">WhatsApp отсутствует</p>
                                             </div>
-                                            <p className="mt-1.5 text-center text-xs text-muted-foreground leading-tight">
-                                                У кандидата нет WhatsApp. Только звонки/смс.
-                                            </p>
-                                        </div>
-                                    ) : null}
-                                </div>
-                            ) : (
-                                <Button
-                                    onClick={handlePrimaryAction}
-                                    className="w-full sm:min-w-[240px] h-11 sm:h-12 text-xs sm:text-sm font-semibold rounded-lg shadow-md bg-foreground text-background hover:bg-foreground/90"
-                                    disabled={isUnlocking}
-                                >
-                                    {isUnlocking ? "Открываем..." : isViewed ? "Открыть снова" : "Открыть контакт и связаться"}
-                                </Button>
-                            )}
+                                        ) : null}
+                                    </div>
+                                ) : (
+                                    <Button
+                                        onClick={handlePrimaryAction}
+                                        className="w-full sm:min-w-[220px] h-12 text-sm font-bold rounded-xl shadow-md bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.98]"
+                                        disabled={isUnlocking}
+                                    >
+                                        {isUnlocking ? "Открываем..." : isViewed ? "Открыть контакт" : "Открыть контакт"}
+                                    </Button>
+                                )}
+                            </div>
                         </div>
 
                         {!isAuthenticated ? (
-                            <p className="mt-4 text-xs font-medium text-center text-muted-foreground bg-muted/50 py-2 rounded-lg">
-                                Чтобы открыть контакт кандидата, необходимо авторизоваться на платформе.
+                            <p className="mt-5 text-sm font-medium text-center text-muted-foreground bg-muted/60 py-2.5 rounded-lg border border-border/40">
+                                Для просмотра контактов авторизуйтесь.
                             </p>
                         ) : null}
 
                         {unlockError ? (
-                            <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-xl">
+                            <div className="mt-5 p-3 sm:p-4 bg-destructive/10 border border-destructive/20 rounded-xl">
                                 <p className="text-sm font-medium text-destructive text-center">{unlockError}</p>
                             </div>
                         ) : null}
