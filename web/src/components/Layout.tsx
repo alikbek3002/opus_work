@@ -74,7 +74,7 @@ export default function Layout() {
                         <div className="flex h-10 sm:h-16 items-center justify-center shrink-0">
                             <img src="/logo.png" alt="Opus" className="h-full w-auto object-contain" />
                         </div>
-                        <span className="text-xl sm:text-2xl font-bold tracking-tight hidden sm:inline-block text-primary rubik-mono-one-regular ml-1">Жумуш</span>
+                        <span className="text-xl sm:text-2xl font-bold tracking-tight inline-block text-primary rubik-mono-one-regular ml-1">Жумуш</span>
                     </Link>
 
                     <nav className="flex items-center gap-3 sm:gap-6">
@@ -99,7 +99,7 @@ export default function Layout() {
 
                         {isAuthenticated ? (
                             <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="hidden sm:flex flex-col items-end text-[11px] leading-tight text-muted-foreground">
+                                <div className="flex flex-col items-end text-[10px] sm:text-[11px] leading-[1.1] sm:leading-tight text-muted-foreground ml-1 sm:ml-0">
                                     <span>
                                         Остаток: <span className="font-semibold text-foreground">{subscription?.cards_remaining ?? 0}</span>
                                     </span>

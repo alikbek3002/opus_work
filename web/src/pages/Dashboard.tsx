@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Filter } from 'lucide-react';
 import { useEmployees, useViewedEmployees, useViewedHistory, useViewEmployee } from '../hooks/useEmployees';
 import { useSubscription } from '../hooks/useTariffs';
 import EmployeeCard from '../components/EmployeeCard';
@@ -17,6 +18,7 @@ export default function Dashboard() {
     const [appliedFilters, setAppliedFilters] = useState<{ districts?: string[]; specializations?: string[] }>({});
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeCardType | null>(null);
     const [openedProfiles, setOpenedProfiles] = useState<Record<string, EmployeeFullProfile>>({});
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
     const { data: employees = [], isPending, error, isError } = useEmployees(appliedFilters);
     const { data: subscription } = useSubscription();
@@ -91,14 +93,21 @@ export default function Dashboard() {
 
     return (
         <div className="flex flex-col gap-8 w-full">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Кандидаты</h1>
                     <p className="text-muted-foreground mt-1">Найдите нужного кандидата за 15 минут</p>
                 </div>
+                <button
+                    className="md:hidden flex items-center justify-center gap-2 rounded-xl border border-border/50 bg-card px-4 py-2 text-sm font-medium shadow-sm hover:bg-muted"
+                    onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                >
+                    <Filter className="w-4 h-4 shrink-0" />
+                    <span>{isFiltersOpen ? "Скрыть" : "Фильтры"}</span>
+                </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-card border border-border/50 rounded-2xl p-4 sm:p-6 shadow-sm relative">
+            <div className={`grid-cols-1 md:grid-cols-2 gap-6 bg-card border border-border/50 rounded-2xl p-4 sm:p-6 shadow-sm relative ${isFiltersOpen ? 'grid' : 'hidden md:grid'}`}>
                 <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
                     <div className="absolute top-0 right-0 -m-8 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
                     <div className="absolute bottom-0 left-0 -m-8 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
