@@ -124,12 +124,17 @@ export default function Tariffs() {
                                             <PricingCard.Badge className="bg-primary/10 text-primary border-primary/20">Популярный</PricingCard.Badge>
                                         )}
                                     </PricingCard.Plan>
-                                    <PricingCard.Price>
-                                        <PricingCard.MainPrice>{tariff.price.toLocaleString()}</PricingCard.MainPrice>
-                                        <PricingCard.Period>сом / {getDurationText(tariff.period)}</PricingCard.Period>
-                                        {(tariff.period === 'week') && <PricingCard.OriginalPrice>2,900</PricingCard.OriginalPrice>}
-                                        {(tariff.period === 'month') && <PricingCard.OriginalPrice>7,900</PricingCard.OriginalPrice>}
-                                        {(tariff.period === 'quarter') && <PricingCard.OriginalPrice>19,900</PricingCard.OriginalPrice>}
+                                    <PricingCard.Price className="items-baseline">
+                                        <div className="flex flex-col">
+                                            <div className="flex items-baseline gap-2">
+                                                {(tariff.period === 'week') && <PricingCard.OriginalPrice>2,900</PricingCard.OriginalPrice>}
+                                                {(tariff.period === 'month') && <PricingCard.OriginalPrice>7,900</PricingCard.OriginalPrice>}
+                                                {(tariff.period === 'quarter') && <PricingCard.OriginalPrice>19,900</PricingCard.OriginalPrice>}
+                                                <PricingCard.MainPrice>{tariff.price.toLocaleString()}</PricingCard.MainPrice>
+                                                <span className="text-xl font-bold ml-1">сом</span>
+                                            </div>
+                                            <PricingCard.Period>за {getDurationText(tariff.period)}</PricingCard.Period>
+                                        </div>
                                     </PricingCard.Price>
                                     <Button
                                         variant={isPopular ? "default" : "outline"}

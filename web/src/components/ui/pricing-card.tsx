@@ -114,7 +114,7 @@ function OriginalPrice({ className, ...props }: React.ComponentProps<'span'>) {
     return (
         <span
             className={cn(
-                'text-muted-foreground mr-1 ml-auto text-lg line-through',
+                'text-muted-foreground mr-2 text-lg line-through font-normal',
                 className,
             )}
             {...props}
