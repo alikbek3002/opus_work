@@ -180,6 +180,7 @@ export interface EmployeeFullProfile extends EmployeeCard {
     has_whatsapp: boolean | null;
     photo_file_id: string | null;
     ready_for_weekends: boolean | null;
+    has_sanitary_book: string | null;
     about_me: string | null;
     has_recommendations: boolean | null;
     verification_rejected_reason: string | null;

@@ -170,6 +170,10 @@ export default function EmployeeDetailsDialog({
                                         <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(employee.experience)}</dd>
                                     </div>
                                     <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
+                                        <dt className="text-sm font-medium text-muted-foreground">Сан. книжка</dt>
+                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(unlockedProfile?.has_sanitary_book)}</dd>
+                                    </div>
+                                    <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt className="text-sm font-medium text-muted-foreground">О себе</dt>
                                         <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 whitespace-pre-wrap leading-relaxed">{displayValue(unlockedProfile?.about_me)}</dd>
                                     </div>

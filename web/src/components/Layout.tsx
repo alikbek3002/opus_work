@@ -99,7 +99,7 @@ export default function Layout() {
 
                         {isAuthenticated ? (
                             <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="flex flex-col items-end text-[10px] sm:text-[11px] leading-[1.1] sm:leading-tight text-muted-foreground ml-1 sm:ml-0">
+                                <div className="flex flex-col items-end text-[10px] sm:text-[11px] leading-[1.1] sm:leading-tight text-muted-foreground ml-1 sm:ml-0 shrink-0 whitespace-nowrap">
                                     <span>
                                         Остаток: <span className="font-semibold text-foreground">{subscription?.cards_remaining ?? 0}</span>
                                     </span>

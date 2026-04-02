@@ -29,12 +29,13 @@ from database import get_employee_by_telegram_id, save_employee
     DISTRICT,
     EMPLOYMENT_TYPE,
     WEEKEND_WORK,
+    SANITARY_BOOK,
     ABOUT_ME,
     HAS_RECOMMENDATIONS,
     CONTACT_METHOD,
     PHONE_NUMBER,
     CONFIRM,
-) = range(14)
+) = range(15)
 
 CONTACT_METHOD_OPTIONS = ["WhatsApp", "Обычный номер"]
 GENDER_OPTIONS = ["Мужчина", "Женщина"]
@@ -89,6 +90,7 @@ SPECIALIZATION_OPTIONS = [
 EXPERIENCE_OPTIONS = ["Без опыта", "До 1 года", "1–2 года", "2–5 лет", "5+ лет"]
 EMPLOYMENT_TYPE_OPTIONS = ["Подработки", "Сезонная", "Постоянная работа"]
 SCHEDULE_OPTIONS = ["Только будни", "Будни + выходные", "Только выходные", "Любые дни"]
+SANITARY_BOOK_OPTIONS = ["Есть", "Нет", "Готов(а) сделать"]
 YES_NO_OPTIONS = ["Да", "Нет"]
 FIELD_LABELS = {
     "full_name": "Имя",
@@ -100,6 +102,7 @@ FIELD_LABELS = {
     "district": "Районы",
     "employment_type": "Формат работы",
     "schedule": "График работы",
+    "has_sanitary_book": "Санитарная книжка",
     "about_me": "О себе",
     "has_recommendations": "Рекомендации",
     "has_whatsapp": "Способ связи",
@@ -163,13 +166,14 @@ def build_edit_keyboard() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton("📅 График", callback_data="edit_field:schedule"),
+            InlineKeyboardButton("🩺 Сан. книжка", callback_data="edit_field:has_sanitary_book"),
+        ],
+        [
             InlineKeyboardButton("📝 О себе", callback_data="edit_field:about_me"),
-        ],
-        [
             InlineKeyboardButton("⭐ Рекомендации", callback_data="edit_field:has_recommendations"),
-            InlineKeyboardButton("💬 Связь", callback_data="edit_field:has_whatsapp"),
         ],
         [
+            InlineKeyboardButton("💬 Связь", callback_data="edit_field:has_whatsapp"),
             InlineKeyboardButton("📱 Номер", callback_data="edit_field:phone_number"),
         ],
         [InlineKeyboardButton("⬅️ Назад к анкете", callback_data="back_to_summary")],
@@ -227,6 +231,7 @@ def build_summary(data: dict) -> str:
         f"📍 Районы: {escape(str(data.get('district', 'Не указано')))}\n"
         f"🕒 Формат работы: {escape(str(data.get('employment_type', 'Не указано')))}\n"
         f"📅 График работы: {escape(str(data.get('schedule', 'Не указано')))}\n"
+        f"🩺 Сан. книжка: {escape(str(data.get('has_sanitary_book', 'Не указано')))}\n"
         f"📝 О себе: {escape(str(data.get('about_me', 'Не указано')))}\n"
         f"⭐ Есть рекомендации: {escape(get_yes_no_label(data.get('has_recommendations')))}\n"
         f"🔗 Telegram username: {escape(format_telegram_username(data.get('telegram_username')))}\n"
@@ -280,7 +285,7 @@ async def start_registration(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "📝 *Регистрация в Opus*\n\n"
         "Давайте заполним вашу анкету.\n"
         "Вы можете отменить регистрацию в любой момент командой /cancel\n\n"
-        "Шаг 1/12: Как вас зовут?",
+        "Шаг 1/13: Как вас зовут?",
         parse_mode="Markdown",
     )
     return FULL_NAME
@@ -302,7 +307,7 @@ async def full_name_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 2/12: Сколько вам лет? Введите число:",
+        "Шаг 2/13: Сколько вам лет? Введите число:",
         reply_markup=ReplyKeyboardRemove(),
     )
     return AGE
@@ -324,7 +329,7 @@ async def age_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 3/12: Выберите ваш пол:",
+        "Шаг 3/13: Выберите ваш пол:",
         reply_markup=build_reply_keyboard(GENDER_OPTIONS),
     )
     return GENDER
@@ -349,7 +354,7 @@ async def gender_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 4/12: Сделайте селфи прямо сейчас на фронтальную камеру, чтобы было четко видно ваше лицо, и отправьте мне:",
+        "Шаг 4/13: Сделайте селфи прямо сейчас на фронтальную камеру, чтобы было четко видно ваше лицо, и отправьте мне:",
         reply_markup=ReplyKeyboardRemove(),
     )
     return PHOTO
@@ -371,7 +376,7 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 5/12: Кем хотите работать? Можно выбрать несколько вариантов:",
+        "Шаг 5/13: Кем хотите работать? Можно выбрать несколько вариантов:",
         reply_markup=build_multiselect_inline_keyboard(SPECIALIZATION_OPTIONS, set(), "spec"),
     )
     return SPECIALIZATIONS
@@ -424,7 +429,7 @@ async def specializations_done_handler(update: Update, context: ContextTypes.DEF
     await query.edit_message_text(f"Профессии выбраны: {context.user_data['specializations']}")
     
     await query.message.reply_text(
-        "Шаг 6/12: Какой у вас опыт работы? Выберите подходящий вариант:",
+        "Шаг 6/13: Какой у вас опыт работы? Выберите подходящий вариант:",
         reply_markup=build_reply_keyboard(EXPERIENCE_OPTIONS),
     )
     return EXPERIENCE
@@ -449,7 +454,7 @@ async def experience_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 7/12: В каких районах готовы работать? Можно выбрать несколько:",
+        "Шаг 7/13: В каких районах готовы работать? Можно выбрать несколько:",
         reply_markup=build_multiselect_inline_keyboard(DISTRICT_OPTIONS, set(), "dist"),
     )
     return DISTRICT
@@ -497,7 +502,7 @@ async def district_done_handler(update: Update, context: ContextTypes.DEFAULT_TY
 
 
     await query.message.reply_text(
-        "Шаг 8/12: Выберите формат работы (можно несколько):",
+        "Шаг 8/13: Выберите формат работы (можно несколько):",
         reply_markup=build_multiselect_inline_keyboard(EMPLOYMENT_TYPE_OPTIONS, set(), "emp"),
     )
     return EMPLOYMENT_TYPE
@@ -543,7 +548,7 @@ async def employment_type_done_handler(update: Update, context: ContextTypes.DEF
     await query.edit_message_text(f"Формат работы: {context.user_data['employment_type']}")
 
     await query.message.reply_text(
-        "Шаг 9/12: Выберите график работы:",
+        "Шаг 9/13: Выберите график работы:",
         reply_markup=build_reply_keyboard(SCHEDULE_OPTIONS),
     )
     return WEEKEND_WORK
@@ -568,7 +573,30 @@ async def schedule_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 10/12: Напишите 2-3 предложения о себе:",
+        "Шаг 10/13: Санитарная книжка?",
+        reply_markup=build_reply_keyboard(SANITARY_BOOK_OPTIONS),
+    )
+    return SANITARY_BOOK
+
+
+
+async def sanitary_book_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    answer = update.message.text.strip()
+    if answer not in SANITARY_BOOK_OPTIONS:
+        await update.message.reply_text(
+            "⚠️ Выберите вариант кнопкой ниже:", 
+            reply_markup=build_reply_keyboard(SANITARY_BOOK_OPTIONS)
+        )
+        return SANITARY_BOOK
+        
+    context.user_data["has_sanitary_book"] = answer
+    if context.user_data.get("edit_field") == "has_sanitary_book":
+        context.user_data.pop("edit_field", None)
+        await show_confirmation(update, context)
+        return CONFIRM
+        
+    await update.message.reply_text(
+        "Шаг 11/13: Напишите 2-3 предложения о себе:",
         reply_markup=ReplyKeyboardRemove(),
     )
     return ABOUT_ME
@@ -590,7 +618,7 @@ async def about_me_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 11/12: Есть рекомендации от прошлых работодателей?",
+        "Шаг 11/13: Есть рекомендации от прошлых работодателей?",
         reply_markup=build_reply_keyboard(YES_NO_OPTIONS),
     )
     return HAS_RECOMMENDATIONS
@@ -615,7 +643,7 @@ async def recommendations_handler(update: Update, context: ContextTypes.DEFAULT_
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 12/12: Выберите способ связи по номеру:",
+        "Шаг 12/13: Выберите способ связи по номеру:",
         reply_markup=build_reply_keyboard(CONTACT_METHOD_OPTIONS),
     )
     return CONTACT_METHOD
@@ -640,7 +668,7 @@ async def contact_method_handler(update: Update, context: ContextTypes.DEFAULT_T
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 12/12 (последний): Введите номер "
+        "Шаг 12/13 (последний): Введите номер "
         f"{'для WhatsApp' if context.user_data['has_whatsapp'] else 'телефона'} "
         "в международном формате, например: +996700123456",
         reply_markup=ReplyKeyboardRemove(),
@@ -752,6 +780,14 @@ async def edit_field(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         )
         return WEEKEND_WORK
 
+
+    if field == "has_sanitary_book":
+        await query.message.reply_text(
+            "Выберите наличие санитарной книжки:",
+            reply_markup=build_reply_keyboard(SANITARY_BOOK_OPTIONS),
+        )
+        return SANITARY_BOOK
+
     if field == "about_me":
         await query.message.reply_text(
             "Напишите обновлённый текст о себе (2-3 предложения):",
@@ -808,6 +844,7 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
         "district": data["district"],
         "employment_type": data["employment_type"],
         "schedule": data.get("schedule"),
+        "has_sanitary_book": data["has_sanitary_book"],
         "about_me": data["about_me"],
         "has_recommendations": data["has_recommendations"],
         "phone_number": data["phone_number"],
@@ -914,6 +951,7 @@ def get_registration_handler() -> ConversationHandler:
                 CallbackQueryHandler(employment_type_done_handler, pattern="^emp_done$"),
             ],
             WEEKEND_WORK: [MessageHandler(filters.TEXT & ~filters.COMMAND, schedule_handler)],
+            SANITARY_BOOK: [MessageHandler(filters.TEXT & ~filters.COMMAND, sanitary_book_handler)],
             ABOUT_ME: [MessageHandler(filters.TEXT & ~filters.COMMAND, about_me_handler)],
             HAS_RECOMMENDATIONS: [MessageHandler(filters.TEXT & ~filters.COMMAND, recommendations_handler)],
             CONTACT_METHOD: [MessageHandler(filters.TEXT & ~filters.COMMAND, contact_method_handler)],

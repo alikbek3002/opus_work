@@ -59,6 +59,7 @@ class EmployeeFullProfile(EmployeeCard):
     has_whatsapp: Optional[bool] = None
     photo_file_id: Optional[str] = None
     ready_for_weekends: Optional[bool] = None
+    has_sanitary_book: Optional[str] = None
     about_me: Optional[str] = None
     has_recommendations: Optional[bool] = None
     verification_rejected_reason: Optional[str] = None
