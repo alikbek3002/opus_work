@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from database import supabase
+from database import supabase, supabase_anon
 from models.schemas import RegisterRequest, LoginRequest, PasswordResetRequest, AuthResponse
 
 router = APIRouter(prefix="/api/auth", tags=["Авторизация"])
@@ -10,7 +10,7 @@ async def register(data: RegisterRequest):
     """Регистрация нового работодателя."""
     try:
         # Создаём пользователя в Supabase Auth
-        auth_response = supabase.auth.sign_up({
+        auth_response = supabase_anon.auth.sign_up({
             "email": data.email,
             "password": data.password,
         })
@@ -50,7 +50,7 @@ async def register(data: RegisterRequest):
 async def login(data: LoginRequest):
     """Авторизация работодателя."""
     try:
-        auth_response = supabase.auth.sign_in_with_password({
+        auth_response = supabase_anon.auth.sign_in_with_password({
             "email": data.email,
             "password": data.password,
         })
@@ -72,7 +72,7 @@ async def login(data: LoginRequest):
 async def reset_password(data: PasswordResetRequest):
     """Отправить письмо для сброса пароля работодателю."""
     try:
-        supabase.auth.reset_password_for_email(data.email)
+        supabase_anon.auth.reset_password_for_email(data.email)
         return {"message": "Ссылка для сброса пароля отправлена на ваш email."}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Ошибка сброса пароля: {str(e)}")

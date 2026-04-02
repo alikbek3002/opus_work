@@ -1,6 +1,6 @@
-from fastapi import Request, HTTPException, Depends
+from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from database import supabase
+from database import supabase_anon
 
 security = HTTPBearer()
 
@@ -10,7 +10,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     token = credentials.credentials
 
     try:
-        user_response = supabase.auth.get_user(token)
+        user_response = supabase_anon.auth.get_user(token)
         user = user_response.user
 
         if not user:
