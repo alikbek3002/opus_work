@@ -87,15 +87,15 @@ def _build_keyboard(employee_id: str) -> InlineKeyboardMarkup:
     )
 
 
-async def notify_new_employee(employee: dict) -> None:
+async def notify_new_employee(employee: dict) -> bool:
     if not settings.VERIFICATION_BOT_TOKEN:
         logger.warning("VERIFICATION_BOT_TOKEN не задан, уведомление о новой анкете не отправлено")
-        return
+        return False
 
     employee_id = employee.get("id")
     if not employee_id:
         logger.warning("Не удалось отправить анкету на модерацию: отсутствует employee.id")
-        return
+        return False
 
     def load_recipients() -> list[int]:
         subscribers_response = (
@@ -113,7 +113,7 @@ async def notify_new_employee(employee: dict) -> None:
     chat_ids = await asyncio.to_thread(load_recipients)
     if not chat_ids:
         logger.warning("Нет получателей verification bot для анкеты %s", employee_id)
-        return
+        return False
 
     logger.info("Найдено %s подписчиков verification bot для анкеты %s", len(chat_ids), employee_id)
 
@@ -121,6 +121,7 @@ async def notify_new_employee(employee: dict) -> None:
     message_text = _build_employee_message(employee)
     reply_markup = _build_keyboard(str(employee_id))
 
+    delivered_count = 0
     for chat_id in chat_ids:
         try:
             await bot.send_message(
@@ -129,6 +130,7 @@ async def notify_new_employee(employee: dict) -> None:
                 parse_mode="HTML",
                 reply_markup=reply_markup,
             )
+            delivered_count += 1
         except Exception as exc:
             error_text = str(exc).lower()
             if any(fragment in error_text for fragment in ["blocked", "chat not found", "user is deactivated", "forbidden"]):
@@ -143,3 +145,8 @@ async def notify_new_employee(employee: dict) -> None:
                 chat_id,
                 exc,
             )
+    if delivered_count == 0:
+        logger.warning("Анкета %s не была доставлена ни в один чат verification bot", employee_id)
+        return False
+    logger.info("Анкета %s отправлена в %s чат(ов) verification bot", employee_id, delivered_count)
+    return True

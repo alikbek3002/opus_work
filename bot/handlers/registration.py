@@ -147,8 +147,11 @@ async def notify_new_employee_background(employee: dict) -> None:
         from verification_notifier import notify_new_employee
 
         logger.info("Отправляем анкету на верификацию для employee_id=%s", employee.get("id"))
-        await notify_new_employee(employee)
-        logger.info("Уведомление о новой анкете отправлено успешно")
+        delivered = await notify_new_employee(employee)
+        if delivered:
+            logger.info("Уведомление о новой анкете доставлено")
+        else:
+            logger.warning("Уведомление о новой анкете не было доставлено")
     except Exception:
         logger.exception("Ошибка при отправке уведомления верификатору")
 

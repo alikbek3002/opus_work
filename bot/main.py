@@ -82,6 +82,10 @@ async def on_post_init(application) -> None:
     await application.bot.set_my_commands(commands_ky, language_code="ky")
     await application.bot.set_my_commands(commands_ru)
     await application.bot.set_chat_menu_button(menu_button=MenuButtonCommands())
+    if settings.VERIFICATION_BOT_TOKEN:
+        logger.info("Уведомления в verification bot включены")
+    else:
+        logger.warning("VERIFICATION_BOT_TOKEN не задан: новые анкеты не будут отправляться в verification bot")
     application.bot_data["activity_prompt_task"] = asyncio.create_task(activity_prompt_loop(application))
 
 
