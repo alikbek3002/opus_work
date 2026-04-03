@@ -341,15 +341,22 @@ async def show_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE, 
 async def start_registration(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Начало регистрации."""
     query = update.callback_query
+    if not query:
+        return ConversationHandler.END
     await query.answer()
     language = get_current_language(update, context)
     context.user_data["bot_language"] = language
 
     existing = get_employee_by_telegram_id(query.from_user.id)
     if existing:
-        await query.edit_message_text(
-            tr(language, "start_existing", name=existing["full_name"]),
-        )
+        try:
+            await query.edit_message_text(
+                tr(language, "start_existing", name=existing["full_name"]),
+            )
+        except Exception:
+            await query.message.reply_text(
+                tr(language, "start_existing", name=existing["full_name"]),
+            )
         return ConversationHandler.END
 
     bot_language = context.user_data.get("bot_language")
@@ -357,11 +364,17 @@ async def start_registration(update: Update, context: ContextTypes.DEFAULT_TYPE)
     context.user_data["telegram_username"] = query.from_user.username
     context.user_data["bot_language"] = bot_language or language
 
-    await query.edit_message_text(
+    try:
+        await query.edit_message_reply_markup(reply_markup=None)
+    except Exception:
+        pass
+
+    await query.message.reply_text(
         f"📝 *{tr(language, 'registration_title')}*\n\n"
         f"{tr(language, 'registration_intro')}\n\n"
         f"{'Шаг 1/12: Как вас зовут?' if language == 'ru' else '1/12-кадам: Атыңыз ким?'}",
         parse_mode="Markdown",
+        reply_markup=ReplyKeyboardRemove(),
     )
     return FULL_NAME
 
@@ -1099,6 +1112,7 @@ def get_registration_handler() -> ConversationHandler:
         entry_points=[
             CallbackQueryHandler(start_registration, pattern="^start_registration$"),
         ],
+        allow_reentry=True,
         states={
             FULL_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, full_name_handler)],
             AGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, age_handler)],
