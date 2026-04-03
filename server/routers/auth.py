@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from database import supabase, supabase_anon
+from config import settings
 from models.schemas import RegisterRequest, LoginRequest, PasswordResetRequest, AuthResponse
 
 router = APIRouter(prefix="/api/auth", tags=["Авторизация"])
@@ -72,7 +73,13 @@ async def login(data: LoginRequest):
 async def reset_password(data: PasswordResetRequest):
     """Отправить письмо для сброса пароля работодателю."""
     try:
-        supabase_anon.auth.reset_password_for_email(data.email)
+        redirect_to = f"{settings.APP_URL.rstrip('/')}/reset-password"
+        supabase_anon.auth.reset_password_for_email(
+            data.email,
+            {
+                "redirect_to": redirect_to,
+            },
+        )
         return {"message": "Ссылка для сброса пароля отправлена на ваш email."}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Ошибка сброса пароля: {str(e)}")

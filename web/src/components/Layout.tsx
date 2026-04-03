@@ -83,7 +83,7 @@ export default function Layout() {
                         <span className="text-lg sm:text-2xl font-bold tracking-tight inline-block text-primary rubik-mono-one-regular ml-1">Анкеты</span>
                     </Link>
 
-                    <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex items-center gap-2 sm:hidden">
                         <div className="flex flex-col items-end text-[10px] sm:text-[11px] leading-[1.1] sm:leading-tight text-muted-foreground shrink-0 whitespace-nowrap">
                             <span>
                                 Остаток: <span className="font-semibold text-foreground">{subscription?.cards_remaining ?? 0}</span>
@@ -106,6 +106,17 @@ export default function Layout() {
                     </div>
 
                     <nav className="hidden sm:flex items-center gap-3 sm:gap-6">
+                        <div className="flex flex-col items-end text-[11px] leading-tight text-muted-foreground shrink-0 whitespace-nowrap">
+                            <span>
+                                Остаток: <span className="font-semibold text-foreground">{subscription?.cards_remaining ?? 0}</span>
+                            </span>
+                            {subscription?.daily_limit ? (
+                                <span>
+                                    Сегодня: <span className="font-semibold text-foreground">{subscription.daily_views_remaining ?? 0}/{subscription.daily_limit}</span>
+                                </span>
+                            ) : null}
+                        </div>
+                        <div className="h-6 w-px bg-border mx-1 sm:mx-2 hidden sm:block"></div>
                         <Link
                             to="/dashboard"
                             className={`flex items-center gap-2 text-xs sm:text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/dashboard' || location.pathname === '/' ? 'text-primary' : 'text-muted-foreground'
@@ -122,8 +133,6 @@ export default function Layout() {
                             <CreditCard strokeWidth={2.5} className="w-4 h-4" />
                             <span className="hidden sm:inline-block">Тарифы</span>
                         </Link>
-                        <div className="h-6 w-px bg-border mx-1 sm:mx-2 hidden sm:block"></div>
-
                         {isAuthenticated ? (
                             <div className="flex items-center gap-3 sm:gap-4">
                                 <button
