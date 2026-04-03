@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-    BadgeCheck,
     PhoneCall,
     MessageCircleMore,
     Phone,
@@ -19,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { getPhotoUrl, type EmployeeCard, type EmployeeFullProfile } from "@/lib/api";
 import EmployeeActivityBadge from "@/components/EmployeeActivityBadge";
-import { normalizeVerificationStatus } from "@/components/VerificationBadge";
+import VerificationBadge, { normalizeVerificationStatus } from "@/components/VerificationBadge";
 
 interface EmployeeDetailsDialogProps {
     open: boolean;
@@ -75,6 +74,15 @@ function buildWhatsAppUrl(phoneNumber?: string | null) {
     return digits ? `https://wa.me/${digits}` : null;
 }
 
+function isFreshProfile(
+    employee: EmployeeCard | null,
+    profile?: EmployeeFullProfile | null,
+) {
+    if (!employee || !profile) return false;
+    if (!employee.created_at || !profile.created_at) return true;
+    return employee.created_at === profile.created_at;
+}
+
 export default function EmployeeDetailsDialog({
     open,
     onOpenChange,
@@ -96,7 +104,7 @@ export default function EmployeeDetailsDialog({
         return null; // Handle photo status reset if dialog closes
     }
 
-    const resolvedProfile = unlockedProfile ?? employee;
+    const resolvedProfile = (isFreshProfile(employee, unlockedProfile) ? unlockedProfile : null) ?? employee;
     const photoTelegramId = unlockedProfile?.telegram_id ?? employee.telegram_id ?? null;
     const contactTelegramId = unlockedProfile?.telegram_id ?? null;
     const telegramUsername = unlockedProfile?.telegram_username?.replace(/^@/, "") || null;
@@ -158,8 +166,11 @@ export default function EmployeeDetailsDialog({
                             <div className="space-y-1.5 w-full">
                                 <DialogTitle className="flex flex-wrap items-center gap-2 text-2xl sm:text-3xl font-extrabold text-foreground leading-tight">
                                     <span>{employee.full_name} — {employee.age || "?"} лет</span>
-                                    {employee.is_verified && <BadgeCheck className="h-6 w-6 text-emerald-500 shrink-0" />}
                                 </DialogTitle>
+                                <VerificationBadge
+                                    status={employee.verification_status}
+                                    isVerified={employee.is_verified}
+                                />
                                 <p className="text-lg font-medium text-primary">
                                     {employee.specializations || "Специализация уточняется"}
                                 </p>
@@ -220,10 +231,6 @@ export default function EmployeeDetailsDialog({
                                     <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt className="text-sm font-medium text-muted-foreground">Готовность к выходным</dt>
                                         <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{displayYesNo(inferWeekendAvailability(resolvedProfile.ready_for_weekends, resolvedProfile.schedule))}</dd>
-                                    </div>
-                                    <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
-                                        <dt className="text-sm font-medium text-muted-foreground">Рекомендации</dt>
-                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{displayYesNo(resolvedProfile?.has_recommendations)}</dd>
                                     </div>
                                 </dl>
                             </section>

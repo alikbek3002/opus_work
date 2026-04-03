@@ -1,3 +1,4 @@
+import asyncio
 from html import escape
 import logging
 
@@ -88,6 +89,7 @@ def _build_keyboard(employee_id: str) -> InlineKeyboardMarkup:
 
 async def notify_new_employee(employee: dict) -> None:
     if not settings.VERIFICATION_BOT_TOKEN:
+        logger.warning("VERIFICATION_BOT_TOKEN не задан, уведомление о новой анкете не отправлено")
         return
 
     employee_id = employee.get("id")
@@ -95,26 +97,31 @@ async def notify_new_employee(employee: dict) -> None:
         logger.warning("Не удалось отправить анкету на модерацию: отсутствует employee.id")
         return
 
-    subscribers_response = (
-        supabase.table("verification_bot_subscribers")
-        .select("chat_id")
-        .eq("is_active", True)
-        .execute()
-    )
-    subscribers = subscribers_response.data or []
-    if not subscribers:
-        logger.info("Нет подписчиков verification bot для рассылки анкеты %s", employee_id)
+    def load_recipients() -> list[int]:
+        subscribers_response = (
+            supabase.table("verification_bot_subscribers")
+            .select("chat_id")
+            .eq("is_active", True)
+            .execute()
+        )
+        return list({
+            int(subscriber["chat_id"])
+            for subscriber in (subscribers_response.data or [])
+            if subscriber.get("chat_id")
+        })
+
+    chat_ids = await asyncio.to_thread(load_recipients)
+    if not chat_ids:
+        logger.warning("Нет получателей verification bot для анкеты %s", employee_id)
         return
+
+    logger.info("Найдено %s подписчиков verification bot для анкеты %s", len(chat_ids), employee_id)
 
     bot = Bot(token=settings.VERIFICATION_BOT_TOKEN)
     message_text = _build_employee_message(employee)
     reply_markup = _build_keyboard(str(employee_id))
 
-    for subscriber in subscribers:
-        chat_id = subscriber.get("chat_id")
-        if not chat_id:
-            continue
-
+    for chat_id in chat_ids:
         try:
             await bot.send_message(
                 chat_id=chat_id,
@@ -125,9 +132,11 @@ async def notify_new_employee(employee: dict) -> None:
         except Exception as exc:
             error_text = str(exc).lower()
             if any(fragment in error_text for fragment in ["blocked", "chat not found", "user is deactivated", "forbidden"]):
-                supabase.table("verification_bot_subscribers").update(
-                    {"is_active": False}
-                ).eq("chat_id", chat_id).execute()
+                await asyncio.to_thread(
+                    lambda: supabase.table("verification_bot_subscribers").update(
+                        {"is_active": False}
+                    ).eq("chat_id", chat_id).execute()
+                )
             logger.warning(
                 "Не удалось отправить анкету %s в чат %s: %s",
                 employee_id,

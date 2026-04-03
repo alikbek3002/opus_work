@@ -1,3 +1,4 @@
+import asyncio
 from html import escape
 import logging
 
@@ -121,6 +122,10 @@ FIELD_LABELS = {
 
 
 def get_current_language(update: Update | None, context: ContextTypes.DEFAULT_TYPE) -> str:
+    context_language = context.user_data.get("bot_language")
+    if context_language:
+        return resolve_language(context_language=context_language)
+
     telegram_language = None
     stored_language = None
     if update and update.effective_user:
@@ -128,11 +133,24 @@ def get_current_language(update: Update | None, context: ContextTypes.DEFAULT_TY
         user_settings = get_bot_user_settings(update.effective_user.id)
         if user_settings:
             stored_language = user_settings.get("preferred_language")
-    return resolve_language(
+    language = resolve_language(
         context_language=context.user_data.get("bot_language"),
         stored_language=stored_language,
         telegram_language=telegram_language,
     )
+    context.user_data["bot_language"] = language
+    return language
+
+
+async def notify_new_employee_background(employee: dict) -> None:
+    try:
+        from verification_notifier import notify_new_employee
+
+        logger.info("Отправляем анкету на верификацию для employee_id=%s", employee.get("id"))
+        await notify_new_employee(employee)
+        logger.info("Уведомление о новой анкете отправлено успешно")
+    except Exception:
+        logger.exception("Ошибка при отправке уведомления верификатору")
 
 
 def build_reply_keyboard(
@@ -347,7 +365,7 @@ async def start_registration(update: Update, context: ContextTypes.DEFAULT_TYPE)
     language = get_current_language(update, context)
     context.user_data["bot_language"] = language
 
-    existing = get_employee_by_telegram_id(query.from_user.id)
+    existing = await asyncio.to_thread(get_employee_by_telegram_id, query.from_user.id)
     if existing:
         try:
             await query.edit_message_text(
@@ -1031,18 +1049,12 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
             photo_bytes = await file.download_as_bytearray()
             
             # Сохраняем в Railway PostgreSQL
-            save_photo(query.from_user.id, photo_bytes)
+            await asyncio.to_thread(save_photo, query.from_user.id, bytes(photo_bytes))
             
         # Сохраняем остальные данные в Supabase
-        saved_employee = save_employee(employee_data)
-
-        try:
-            from verification_notifier import notify_new_employee
-            logger.info("Отправляем анкету на верификацию для employee_id=%s", saved_employee.get("id"))
-            await notify_new_employee(saved_employee)
-            logger.info("Уведомление о новой анкете отправлено успешно")
-        except Exception as notify_err:
-            logger.error("Ошибка при отправке уведомления верификатору: %s", notify_err)
+        saved_employee = await asyncio.to_thread(save_employee, employee_data)
+        if not saved_employee or not saved_employee.get("id"):
+            saved_employee = await asyncio.to_thread(get_employee_by_telegram_id, query.from_user.id) or employee_data
         
         await query.edit_message_text(
             (
@@ -1066,6 +1078,7 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
             ),
             parse_mode="Markdown",
         )
+        asyncio.create_task(notify_new_employee_background(saved_employee))
     except Exception as error:
         error_text = str(error)
         if "PGRST204" in error_text:

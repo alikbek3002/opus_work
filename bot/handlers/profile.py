@@ -104,7 +104,6 @@ async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         f"Готов(а) к выходным: {escape(format_yes_no(derive_weekend_from_schedule(employee.get('schedule'), employee.get('ready_for_weekends'))))}\n"
         f"Сан. книжка: {escape(localize_choice(language, 'sanitary_book', employee.get('has_sanitary_book')) or str(employee.get('has_sanitary_book', 'Не указано')))}\n"
         f"О себе: {escape(str(employee.get('about_me', 'Не указано')))}\n"
-        f"Есть рекомендации: {escape(format_yes_no(employee.get('has_recommendations')))}\n"
         f"Telegram username: {escape(format_telegram_username(employee.get('telegram_username')))}\n"
         f"Связь: {escape(localize_choice(language, 'contact_method', format_contact_method(employee)) or format_contact_method(employee))}\n"
         f"Номер: {escape(str(employee.get('phone_number', 'Не указан')))}\n\n"

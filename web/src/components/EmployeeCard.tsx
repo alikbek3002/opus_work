@@ -1,7 +1,8 @@
 import * as React from "react";
 import { getPhotoUrl, type EmployeeCard as EmployeeCardType } from "@/lib/api";
-import { UserSearch, Eye, MapPin, BadgeCheck, Clock } from "lucide-react";
+import { UserSearch, Eye, MapPin, Clock } from "lucide-react";
 import EmployeeActivityBadge from "@/components/EmployeeActivityBadge";
+import VerificationBadge from "@/components/VerificationBadge";
 
 interface EmployeeCardProps {
     employee: EmployeeCardType;
@@ -37,12 +38,16 @@ export const EmployeeCard = React.forwardRef<HTMLDivElement, EmployeeCardProps>(
                             </div>
                         )}
                         <div className="flex-1 min-w-0 pt-0.5">
-                            <h3 className="flex items-center gap-1.5 text-lg font-bold text-card-foreground leading-tight">
+                            <h3 className="text-lg font-bold text-card-foreground leading-tight">
                                 <span className="line-clamp-2">
                                     {employee.full_name} — {employee.age || "?"} лет — {employee.gender || "Пол не указан"}
                                 </span>
-                                {employee.is_verified && <BadgeCheck className="h-5 w-5 text-emerald-500 shrink-0" />}
                             </h3>
+                            <VerificationBadge
+                                status={employee.verification_status}
+                                isVerified={employee.is_verified}
+                                className="mt-2"
+                            />
                             <p className="mt-1 text-sm font-medium text-primary line-clamp-2">
                                 {employee.specializations || "Специализация уточняется"}
                             </p>

@@ -1,3 +1,5 @@
+import asyncio
+
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
@@ -33,8 +35,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if not user or not update.effective_message:
         return
 
-    existing = get_employee_by_telegram_id(user.id)
-    user_settings = get_bot_user_settings(user.id)
+    existing = await asyncio.to_thread(get_employee_by_telegram_id, user.id)
+    user_settings = await asyncio.to_thread(get_bot_user_settings, user.id)
     language = resolve_language(
         context_language=context.user_data.get("bot_language"),
         stored_language=(existing.get("preferred_language") if existing else None) or (user_settings.get("preferred_language") if user_settings else None),
@@ -67,8 +69,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if not user or not update.effective_message:
         return
 
-    existing = get_employee_by_telegram_id(user.id)
-    user_settings = get_bot_user_settings(user.id)
+    existing = await asyncio.to_thread(get_employee_by_telegram_id, user.id)
+    user_settings = await asyncio.to_thread(get_bot_user_settings, user.id)
     language = resolve_language(
         context_language=context.user_data.get("bot_language"),
         stored_language=(existing.get("preferred_language") if existing else None) or (user_settings.get("preferred_language") if user_settings else None),
@@ -83,8 +85,8 @@ async def language_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     if not user or not update.effective_message:
         return
 
-    existing = get_employee_by_telegram_id(user.id)
-    user_settings = get_bot_user_settings(user.id)
+    existing = await asyncio.to_thread(get_employee_by_telegram_id, user.id)
+    user_settings = await asyncio.to_thread(get_bot_user_settings, user.id)
     language = resolve_language(
         context_language=context.user_data.get("bot_language"),
         stored_language=(existing.get("preferred_language") if existing else None) or (user_settings.get("preferred_language") if user_settings else None),
@@ -106,8 +108,9 @@ async def set_language_callback(update: Update, context: ContextTypes.DEFAULT_TY
     _, language = query.data.split(":", 1)
     context.user_data["bot_language"] = language
 
-    employee = get_employee_by_telegram_id(query.from_user.id)
-    upsert_bot_user_settings(
+    employee = await asyncio.to_thread(get_employee_by_telegram_id, query.from_user.id)
+    await asyncio.to_thread(
+        upsert_bot_user_settings,
         query.from_user.id,
         {
             "preferred_language": language,
@@ -115,7 +118,7 @@ async def set_language_callback(update: Update, context: ContextTypes.DEFAULT_TY
         },
     )
     if employee:
-        update_employee(query.from_user.id, {"preferred_language": language})
+        await asyncio.to_thread(update_employee, query.from_user.id, {"preferred_language": language})
 
     is_registered = bool(employee)
     name = employee.get("full_name") if employee else (query.from_user.first_name or "друг")
@@ -133,8 +136,8 @@ async def start_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
 
     await query.answer()
-    existing = get_employee_by_telegram_id(query.from_user.id)
-    user_settings = get_bot_user_settings(query.from_user.id)
+    existing = await asyncio.to_thread(get_employee_by_telegram_id, query.from_user.id)
+    user_settings = await asyncio.to_thread(get_bot_user_settings, query.from_user.id)
     language = resolve_language(
         context_language=context.user_data.get("bot_language"),
         stored_language=(existing.get("preferred_language") if existing else None) or (user_settings.get("preferred_language") if user_settings else None),

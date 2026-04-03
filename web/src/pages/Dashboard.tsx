@@ -10,6 +10,15 @@ import { useAuth } from '../hooks/useAuth';
 import { type EmployeeCard as EmployeeCardType, type EmployeeFullProfile } from '../lib/api';
 import { EMPLOYEE_DISTRICT_OPTIONS, EMPLOYEE_SPECIALIZATION_OPTIONS } from '../lib/employee-options';
 
+function isFreshProfile(
+    employee: EmployeeCardType | null,
+    profile?: EmployeeFullProfile | null,
+) {
+    if (!employee || !profile) return false;
+    if (!employee.created_at || !profile.created_at) return true;
+    return employee.created_at === profile.created_at;
+}
+
 export default function Dashboard() {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
@@ -35,7 +44,14 @@ export default function Dashboard() {
         return map;
     }, [viewedHistory]);
     const selectedProfile = selectedEmployee
-        ? openedProfiles[selectedEmployee.id] ?? viewedProfilesMap[selectedEmployee.id] ?? null
+        ? (
+            (isFreshProfile(selectedEmployee, openedProfiles[selectedEmployee.id])
+                ? openedProfiles[selectedEmployee.id]
+                : null)
+            ?? (isFreshProfile(selectedEmployee, viewedProfilesMap[selectedEmployee.id])
+                ? viewedProfilesMap[selectedEmployee.id]
+                : null)
+        )
         : null;
     const unlockError = viewMutation.isError ? (viewMutation.error as Error).message : null;
 
