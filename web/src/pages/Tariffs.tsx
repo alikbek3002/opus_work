@@ -2,7 +2,7 @@ import { useTariffs, useSubscription, useCreatePayment } from '../hooks/useTarif
 import { useAuth } from '../hooks/useAuth';
 import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
-import { CheckCircle, CreditCard, ShieldCheck } from 'lucide-react';
+import { CheckCircle, CreditCard, Flame, Lock, ShieldCheck } from 'lucide-react';
 import * as PricingCard from '../components/ui/pricing-card';
 import { Button } from '../components/ui/button';
 import { cn } from '@/lib/utils';
@@ -55,12 +55,26 @@ export default function Tariffs() {
 
     const getDurationText = (period: string) => {
         const texts: Record<string, string> = {
-            day: 'пробный период',
+            day: '1 день',
             week: '7 дней',
             month: '30 дней',
             quarter: '90 дней'
         };
         return texts[period] || period;
+    };
+
+    const audienceByPeriod: Record<string, string> = {
+        day: 'Попробовать сервис',
+        week: 'Закрыть срочную вакансию',
+        month: 'Регулярный найм персонала',
+        quarter: 'Постоянная потребность в кадрах',
+    };
+
+    const originalPriceByPeriod: Record<string, string | null> = {
+        day: '690',
+        week: '2,900',
+        month: '7,900',
+        quarter: '19,900',
     };
 
     const discountByPeriod: Record<string, string | null> = {
@@ -77,10 +91,23 @@ export default function Tariffs() {
                 <p className="text-muted-foreground text-base sm:text-lg">
                     Найдите нужного сотрудника за 15 минут
                 </p>
-                <div className="rounded-2xl border-2 border-primary/30 bg-primary/10 px-4 py-4 sm:px-6 sm:py-5">
-                    <p className="text-center text-sm sm:text-base font-extrabold tracking-wide text-primary uppercase">
-                        Ранний доступ для первых 50 заказчиков со скидкой до 45%. Скидка сохраняется при продлении.
-                    </p>
+                <div className="rounded-3xl border border-orange-200 bg-[linear-gradient(135deg,rgba(255,247,237,1),rgba(255,237,213,1))] px-5 py-5 shadow-[0_18px_50px_rgba(249,115,22,0.12)] sm:px-7 sm:py-6">
+                    <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-orange-300/70 bg-white/80 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[0.22em] text-orange-700">
+                            <Flame className="h-3.5 w-3.5" />
+                            Ранний доступ
+                        </div>
+                        <p className="text-lg font-black uppercase tracking-wide text-orange-950 sm:text-xl">
+                            Первые 50 клиентов
+                        </p>
+                        <p className="text-sm font-semibold text-orange-900 sm:text-base">
+                            Скидка до 45% и цена фиксируется навсегда
+                        </p>
+                        <p className="inline-flex items-center gap-2 rounded-full bg-orange-950 px-4 py-2 text-xs font-semibold text-white sm:text-sm">
+                            <Lock className="h-3.5 w-3.5" />
+                            При продлении скидка сохраняется
+                        </p>
+                    </div>
                 </div>
 
                 {isAuthenticated && subscription && (
@@ -118,22 +145,32 @@ export default function Tariffs() {
                         const isPopular = tariff.period === 'month';
                         const isLoading = loadingTariffId === tariff.id;
                         const discount = discountByPeriod[tariff.period] ?? null;
+                        const originalPrice = originalPriceByPeriod[tariff.period] ?? null;
+                        const audience = audienceByPeriod[tariff.period] ?? 'Подходящий вариант для найма';
 
                         return (
                             <PricingCard.Card
                                 key={tariff.id}
                                 className={cn(
                                     "flex flex-col h-full w-full max-w-[300px] mx-auto",
-                                    isPopular ? "border-primary/50 shadow-primary/10 md:scale-105 z-10" : "border-border/50"
+                                    isPopular ? "border-primary/50 shadow-primary/10 md:scale-[1.03] z-10" : "border-border/50"
                                 )}
                             >
-                                <PricingCard.Header glassEffect={isPopular} className={cn("flex-none", isPopular ? "bg-primary/5 dark:bg-primary/5" : "")}>
-                                    <PricingCard.Plan>
+                                <PricingCard.Header
+                                    glassEffect={isPopular}
+                                    className={cn(
+                                        "flex-none",
+                                        isPopular
+                                            ? "bg-[linear-gradient(180deg,rgba(239,246,255,1),rgba(255,255,255,1))]"
+                                            : "bg-[linear-gradient(180deg,rgba(248,250,252,1),rgba(255,255,255,1))]"
+                                    )}
+                                >
+                                    <PricingCard.Plan className="items-start">
                                         <PricingCard.PlanName>
                                             <ShieldCheck className={cn("w-4 h-4", isPopular ? "text-primary" : "")} />
                                             <span className={cn(isPopular ? "text-primary font-semibold" : "")}>{tariff.name}</span>
                                         </PricingCard.PlanName>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex flex-wrap items-center justify-end gap-2">
                                             {isPopular && (
                                                 <PricingCard.Badge className="bg-primary/10 text-primary border-primary/20">Популярный</PricingCard.Badge>
                                             )}
@@ -144,12 +181,14 @@ export default function Tariffs() {
                                             )}
                                         </div>
                                     </PricingCard.Plan>
+                                    <div className="mb-5">
+                                        <p className="text-sm font-medium text-muted-foreground">Для кого</p>
+                                        <p className="mt-1 text-base font-semibold text-foreground">{audience}</p>
+                                    </div>
                                     <PricingCard.Price className="items-baseline">
                                         <div className="flex flex-col">
                                             <div className="flex items-baseline gap-2">
-                                                {(tariff.period === 'week') && <PricingCard.OriginalPrice>2,900</PricingCard.OriginalPrice>}
-                                                {(tariff.period === 'month') && <PricingCard.OriginalPrice>7,900</PricingCard.OriginalPrice>}
-                                                {(tariff.period === 'quarter') && <PricingCard.OriginalPrice>19,900</PricingCard.OriginalPrice>}
+                                                {originalPrice && <PricingCard.OriginalPrice>{originalPrice}</PricingCard.OriginalPrice>}
                                                 <PricingCard.MainPrice>{tariff.price.toLocaleString()}</PricingCard.MainPrice>
                                                 <span className="text-xl font-bold ml-1">сом</span>
                                             </div>
@@ -177,30 +216,21 @@ export default function Tariffs() {
                                 </PricingCard.Header>
 
                                 <PricingCard.Body className="flex flex-col flex-1 pb-6">
-                                    <PricingCard.Description className="mb-4">
-                                        {tariff.description || `Доступ к базе анкет на ${getDurationText(tariff.period)}.`}
-                                    </PricingCard.Description>
                                     <PricingCard.List className="mt-auto">
                                         <PricingCard.ListItem>
                                             <CheckCircle className="text-primary w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
-                                            <span><strong>{tariff.card_limit}</strong> открытий контактов</span>
-                                        </PricingCard.ListItem>
-                                        <PricingCard.ListItem>
-                                            <CheckCircle className="text-primary w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
-                                            <span><strong>{getDurationText(tariff.period)}</strong> доступа</span>
+                                            <span><strong>{tariff.card_limit}</strong> контактов</span>
                                         </PricingCard.ListItem>
                                         {tariff.daily_limit && (
                                             <PricingCard.ListItem>
                                                 <CheckCircle className="text-primary w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
-                                                <span>Лимит: <strong>{tariff.daily_limit} контактов/день</strong></span>
+                                                <span>До <strong>{tariff.daily_limit}</strong> в день</span>
                                             </PricingCard.ListItem>
                                         )}
-                                        {tariff.period !== 'day' && (
-                                            <PricingCard.ListItem>
-                                                <CheckCircle className="text-primary w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
-                                                <span>Умный поиск анкет</span>
-                                            </PricingCard.ListItem>
-                                        )}
+                                        <PricingCard.ListItem>
+                                            <CheckCircle className="text-primary w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+                                            <span><strong>{getDurationText(tariff.period)}</strong> доступа</span>
+                                        </PricingCard.ListItem>
                                     </PricingCard.List>
                                 </PricingCard.Body>
                             </PricingCard.Card>

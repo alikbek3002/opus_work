@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
     BadgeCheck,
+    PhoneCall,
     MessageCircleMore,
     Phone,
     Send,
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { getPhotoUrl, type EmployeeCard, type EmployeeFullProfile } from "@/lib/api";
 import EmployeeActivityBadge from "@/components/EmployeeActivityBadge";
-import { getVerificationLabel, normalizeVerificationStatus } from "@/components/VerificationBadge";
+import { normalizeVerificationStatus } from "@/components/VerificationBadge";
 
 interface EmployeeDetailsDialogProps {
     open: boolean;
@@ -96,15 +97,15 @@ export default function EmployeeDetailsDialog({
     }
 
     const resolvedProfile = unlockedProfile ?? employee;
-    const _telegramIdFull = resolvedProfile?.telegram_id ?? null;
-    const photoTelegramId = resolvedProfile?.telegram_id ?? employee.telegram_id ?? null;
-    const telegramUsername = resolvedProfile?.telegram_username?.replace(/^@/, "") || null;
+    const photoTelegramId = unlockedProfile?.telegram_id ?? employee.telegram_id ?? null;
+    const contactTelegramId = unlockedProfile?.telegram_id ?? null;
+    const telegramUsername = unlockedProfile?.telegram_username?.replace(/^@/, "") || null;
     const telegramLink = telegramUsername
         ? `https://t.me/${telegramUsername}`
-        : _telegramIdFull
-            ? `tg://user?id=${_telegramIdFull}`
+        : contactTelegramId
+            ? `tg://user?id=${contactTelegramId}`
             : null;
-    const whatsappUrl = resolvedProfile?.has_whatsapp ? buildWhatsAppUrl(resolvedProfile.phone_number) : null;
+    const whatsappUrl = unlockedProfile?.has_whatsapp ? buildWhatsAppUrl(unlockedProfile.phone_number) : null;
     const verificationStatus = normalizeVerificationStatus(employee.verification_status, employee.is_verified);
     const activityEmploymentType = resolvedProfile?.employment_type ?? employee.employment_type;
     const activitySignal = resolvedProfile?.activity_signal ?? employee.activity_signal;
@@ -259,7 +260,7 @@ export default function EmployeeDetailsDialog({
                                             <div className="space-y-2 text-sm">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-muted-foreground w-20">Telegram:</span>
-                                                    <span className="font-semibold text-foreground">{telegramUsername ? `@${telegramUsername}` : _telegramIdFull ? `ID ${_telegramIdFull}` : "Не указан"}</span>
+                                                    <span className="font-semibold text-foreground">{telegramUsername ? `@${telegramUsername}` : contactTelegramId ? `ID ${contactTelegramId}` : "Не указан"}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-muted-foreground w-20">Телефон:</span>
@@ -280,7 +281,7 @@ export default function EmployeeDetailsDialog({
                                 </div>
 
                                 <div className="shrink-0 w-full sm:w-auto">
-                                    {telegramLink || resolvedProfile?.phone_number ? (
+                                    {unlockedProfile && (telegramLink || unlockedProfile.phone_number) ? (
                                         <div className="flex flex-col gap-3 min-w-0 sm:min-w-[220px]">
                                             {telegramLink ? (
                                                 <Button asChild className="w-full h-11 rounded-xl shadow-sm text-sm" variant="default">
@@ -297,11 +298,20 @@ export default function EmployeeDetailsDialog({
                                                         Написать в WhatsApp
                                                     </a>
                                                 </Button>
-                                            ) : resolvedProfile?.phone_number ? (
+                                            ) : null}
+                                            {unlockedProfile.phone_number ? (
+                                                <Button asChild className="w-full h-11 rounded-xl shadow-sm text-sm" variant="outline">
+                                                    <a href={`tel:${unlockedProfile.phone_number}`}>
+                                                        <PhoneCall className="mr-2 h-4 w-4" />
+                                                        Связаться по номеру
+                                                    </a>
+                                                </Button>
+                                            ) : null}
+                                            {!whatsappUrl && unlockedProfile.phone_number ? (
                                                 <div className="rounded-xl border border-border/50 bg-card px-4 py-3 shadow-sm text-center">
                                                     <div className="flex items-center justify-center gap-2 font-bold text-base">
                                                         <Phone className="h-4 w-4 text-primary" />
-                                                        {resolvedProfile.phone_number}
+                                                        {unlockedProfile.phone_number}
                                                     </div>
                                                     <p className="mt-1 text-xs text-muted-foreground">WhatsApp отсутствует</p>
                                                 </div>
