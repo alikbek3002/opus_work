@@ -20,7 +20,9 @@ async def get_photo(telegram_id: int):
     # Указываем браузеру кэшировать недолго (или revalidate),
     # чтобы при удалении/изменении анкеты фото обновлялось, а не висело в кэше браузера.
     headers = {
-        "Cache-Control": "no-cache, max-age=0"
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
     }
     
     # Telegram обычно отдает фото как jpeg

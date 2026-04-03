@@ -44,7 +44,7 @@ def update_employee(telegram_id: int, data: dict) -> dict:
 def list_employees_due_for_activity_prompt() -> list[dict]:
     response = (
         supabase.table("employees")
-        .select("telegram_id, full_name, employment_type, activity_signal_prompted_at")
+        .select("telegram_id, full_name, employment_type, activity_signal_prompted_at, preferred_language")
         .execute()
     )
 

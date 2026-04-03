@@ -5,21 +5,22 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
 from activity_signal import format_employee_activity_status
 from database import delete_employee, get_employee_by_telegram_id
+from i18n import localize_choice, localize_csv_choices, resolve_language, tr
 
 
-def build_profile_actions_keyboard() -> InlineKeyboardMarkup:
+def build_profile_actions_keyboard(language: str = "ru") -> InlineKeyboardMarkup:
     """Кнопки управления уже сохранённой анкетой."""
     keyboard = [
-        [InlineKeyboardButton("🗑 Удалить анкету", callback_data="request_delete_profile")],
+        [InlineKeyboardButton("🗑 Удалить анкету" if language == "ru" else "🗑 Анкетаны өчүрүү", callback_data="request_delete_profile")],
     ]
     return InlineKeyboardMarkup(keyboard)
 
 
-def build_delete_confirmation_keyboard() -> InlineKeyboardMarkup:
+def build_delete_confirmation_keyboard(language: str = "ru") -> InlineKeyboardMarkup:
     """Подтверждение удаления анкеты."""
     keyboard = [
-        [InlineKeyboardButton("✅ Да, удалить", callback_data="confirm_delete_profile")],
-        [InlineKeyboardButton("↩️ Нет, оставить", callback_data="cancel_delete_profile")],
+        [InlineKeyboardButton("✅ Да, удалить" if language == "ru" else "✅ Ооба, өчүрүү", callback_data="confirm_delete_profile")],
+        [InlineKeyboardButton("↩️ Нет, оставить" if language == "ru" else "↩️ Жок, калтыр", callback_data="cancel_delete_profile")],
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -72,40 +73,50 @@ async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     employee = get_employee_by_telegram_id(telegram_id)
 
     if not employee:
-        await update.message.reply_text("❌ Вы ещё не зарегистрированы. Напишите /start")
+        language = resolve_language(
+            context_language=context.user_data.get("bot_language"),
+            telegram_language=update.effective_user.language_code,
+        )
+        await update.message.reply_text(f"❌ {tr(language, 'profile_empty')}")
         return
 
+    language = resolve_language(
+        context_language=context.user_data.get("bot_language"),
+        stored_language=employee.get("preferred_language"),
+        telegram_language=update.effective_user.language_code,
+    )
+    context.user_data["bot_language"] = language
     status_text, status_emoji = get_verification_status_text(employee)
     activity_status = format_employee_activity_status(employee)
     activity_status_text = f"{escape(activity_status)}\n" if activity_status else ""
 
     text = (
-        "👤 <b>Ваш профиль</b>\n\n"
+        f"👤 <b>{escape(tr(language, 'profile_title'))}</b>\n\n"
         f"Имя: {escape(str(employee.get('full_name', 'Не указано')))}\n"
         f"Возраст: {escape(str(employee.get('age', 'Не указано')))}\n"
-        f"Пол: {escape(str(employee.get('gender', 'Не указано')))}\n"
+        f"Пол: {escape(localize_choice(language, 'gender', employee.get('gender')) or str(employee.get('gender', 'Не указано')))}\n"
         f"Фото: {escape(format_photo_status(employee.get('photo_file_id')))}\n"
         f"Район: {escape(str(employee.get('district', 'Не указано')))}\n"
-        f"Профессия: {escape(str(employee.get('specializations', 'Не указано')))}\n"
-        f"Где работал(а): {escape(str(employee.get('experience', 'Не указано')))}\n"
-        f"Занятость: {escape(str(employee.get('employment_type', 'Не указано')))}\n"
-        f"График: {escape(str(employee.get('schedule', 'Не указано')))}\n"
+        f"Профессия: {escape(localize_csv_choices(language, 'specializations', employee.get('specializations')) or str(employee.get('specializations', 'Не указано')))}\n"
+        f"Где работал(а): {escape(localize_choice(language, 'experience', employee.get('experience')) or str(employee.get('experience', 'Не указано')))}\n"
+        f"Занятость: {escape(localize_csv_choices(language, 'employment_type', employee.get('employment_type')) or str(employee.get('employment_type', 'Не указано')))}\n"
+        f"График: {escape(localize_choice(language, 'schedule', employee.get('schedule')) or str(employee.get('schedule', 'Не указано')))}\n"
         f"Готов(а) к выходным: {escape(format_yes_no(derive_weekend_from_schedule(employee.get('schedule'), employee.get('ready_for_weekends'))))}\n"
-        f"Сан. книжка: {escape(str(employee.get('has_sanitary_book', 'Не указано')))}\n"
+        f"Сан. книжка: {escape(localize_choice(language, 'sanitary_book', employee.get('has_sanitary_book')) or str(employee.get('has_sanitary_book', 'Не указано')))}\n"
         f"О себе: {escape(str(employee.get('about_me', 'Не указано')))}\n"
         f"Есть рекомендации: {escape(format_yes_no(employee.get('has_recommendations')))}\n"
         f"Telegram username: {escape(format_telegram_username(employee.get('telegram_username')))}\n"
-        f"Связь: {escape(format_contact_method(employee))}\n"
+        f"Связь: {escape(localize_choice(language, 'contact_method', format_contact_method(employee)) or format_contact_method(employee))}\n"
         f"Номер: {escape(str(employee.get('phone_number', 'Не указан')))}\n\n"
         f"{activity_status_text}"
         f"Статус: {status_text} {status_emoji}\n\n"
-        "После отправки анкеты изменения делаются через удаление и повторное заполнение."
+        f"{escape(tr(language, 'profile_post_update'))}"
     )
 
     await update.message.reply_text(
         text,
         parse_mode="HTML",
-        reply_markup=build_profile_actions_keyboard(),
+        reply_markup=build_profile_actions_keyboard(language),
     )
 
 
@@ -115,15 +126,22 @@ async def update_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     employee = get_employee_by_telegram_id(telegram_id)
 
     if not employee:
-        await update.message.reply_text("❌ Вы ещё не зарегистрированы. Напишите /start")
+        language = resolve_language(
+            context_language=context.user_data.get("bot_language"),
+            telegram_language=update.effective_user.language_code,
+        )
+        await update.message.reply_text(f"❌ {tr(language, 'profile_empty')}")
         return
 
+    language = resolve_language(
+        context_language=context.user_data.get("bot_language"),
+        stored_language=employee.get("preferred_language"),
+        telegram_language=update.effective_user.language_code,
+    )
+    context.user_data["bot_language"] = language
     await update.message.reply_text(
-        "После отправки анкеты редактирование делается так:\n"
-        "1. Удаляете текущую анкету.\n"
-        "2. Проходите регистрацию заново.\n\n"
-        "Если готовы, нажмите кнопку ниже.",
-        reply_markup=build_profile_actions_keyboard(),
+        tr(language, "update_info"),
+        reply_markup=build_profile_actions_keyboard(language),
     )
 
 
@@ -134,13 +152,21 @@ async def request_delete_profile(update: Update, context: ContextTypes.DEFAULT_T
 
     employee = get_employee_by_telegram_id(query.from_user.id)
     if not employee:
-        await query.edit_message_text("❌ Анкета уже удалена. Напишите /start, чтобы зарегистрироваться заново.")
+        language = resolve_language(
+            context_language=context.user_data.get("bot_language"),
+            telegram_language=query.from_user.language_code,
+        )
+        await query.edit_message_text(f"❌ {tr(language, 'profile_empty')}")
         return
 
+    language = resolve_language(
+        context_language=context.user_data.get("bot_language"),
+        stored_language=employee.get("preferred_language"),
+        telegram_language=query.from_user.language_code,
+    )
     await query.edit_message_text(
-        "⚠️ Вы действительно хотите удалить свою анкету?\n"
-        "После удаления нужно будет пройти регистрацию заново.",
-        reply_markup=build_delete_confirmation_keyboard(),
+        f"⚠️ {tr(language, 'delete_confirm')}",
+        reply_markup=build_delete_confirmation_keyboard(language),
     )
 
 
@@ -148,6 +174,13 @@ async def confirm_delete_profile(update: Update, context: ContextTypes.DEFAULT_T
     """Удаляет анкету пользователя."""
     query = update.callback_query
     await query.answer()
+
+    employee = get_employee_by_telegram_id(query.from_user.id)
+    language = resolve_language(
+        context_language=context.user_data.get("bot_language"),
+        stored_language=employee.get("preferred_language") if employee else None,
+        telegram_language=query.from_user.language_code,
+    )
 
     delete_employee(query.from_user.id)
     
@@ -162,12 +195,11 @@ async def confirm_delete_profile(update: Update, context: ContextTypes.DEFAULT_T
     context.user_data.clear()
 
     reply_markup = InlineKeyboardMarkup(
-        [[InlineKeyboardButton("📝 Пройти регистрацию заново", callback_data="start_registration")]]
+        [[InlineKeyboardButton("📝 Пройти регистрацию заново" if language == "ru" else "📝 Кайра катталуу", callback_data="start_registration")]]
     )
 
     await query.edit_message_text(
-        "✅ Ваша анкета удалена.\n"
-        "Нажмите кнопку ниже, чтобы заполнить её заново.",
+        f"✅ {tr(language, 'delete_done')}",
         reply_markup=reply_markup,
     )
 
@@ -176,9 +208,14 @@ async def cancel_delete_profile(update: Update, context: ContextTypes.DEFAULT_TY
     """Отменяет удаление анкеты."""
     query = update.callback_query
     await query.answer()
+    employee = get_employee_by_telegram_id(query.from_user.id)
+    language = resolve_language(
+        context_language=context.user_data.get("bot_language"),
+        stored_language=employee.get("preferred_language") if employee else None,
+        telegram_language=query.from_user.language_code,
+    )
     await query.edit_message_text(
-        "Анкета не удалена.\n"
-        "Используйте /profile, чтобы посмотреть профиль.",
+        tr(language, "delete_cancelled"),
     )
 
 

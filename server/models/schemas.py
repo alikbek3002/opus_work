@@ -51,6 +51,7 @@ class EmployeeCard(BaseModel):
     activity_signal_updated_at: Optional[datetime] = None
     contact_opens_count: int = 0
     telegram_id: Optional[int] = None
+    created_at: Optional[datetime] = None
 
 
 class EmployeeFullProfile(EmployeeCard):

@@ -3,12 +3,12 @@ import asyncio
 from contextlib import suppress
 
 from telegram.ext import ApplicationBuilder
-from telegram import BotCommand
+from telegram import BotCommand, MenuButtonCommands
 
 from activity_signal import PROMPT_SCAN_INTERVAL_SECONDS, build_activity_signal_keyboard, build_activity_signal_prompt
 from config import settings
 from database import list_employees_due_for_activity_prompt, mark_activity_prompt_sent
-from handlers.start import get_start_handler
+from handlers.start import get_start_handlers
 from handlers.activity_status import get_activity_status_handlers
 from handlers.registration import get_registration_handler
 from handlers.profile import get_profile_handlers
@@ -29,8 +29,9 @@ async def send_due_activity_prompts(application) -> None:
     for employee in due_employees:
         telegram_id = employee.get("telegram_id")
         employment_type = employee.get("employment_type")
-        message_text = build_activity_signal_prompt(employee.get("full_name"), employment_type)
-        reply_markup = build_activity_signal_keyboard(employment_type)
+        language = employee.get("preferred_language") or "ru"
+        message_text = build_activity_signal_prompt(employee.get("full_name"), employment_type, language)
+        reply_markup = build_activity_signal_keyboard(employment_type, language)
 
         if not telegram_id or not message_text or not reply_markup:
             continue
@@ -63,13 +64,24 @@ async def activity_prompt_loop(application) -> None:
 
 
 async def on_post_init(application) -> None:
-    commands = [
-        BotCommand("start", "Запустить OPUS Анкеты"),
+    commands_ru = [
+        BotCommand("start", "Главное меню"),
         BotCommand("profile", "Моя анкета"),
-        BotCommand("update", "Редактировать анкету"),
-        BotCommand("help", "Помощь")
+        BotCommand("update", "Заполнить заново"),
+        BotCommand("language", "Выбрать язык"),
+        BotCommand("help", "Помощь"),
     ]
-    await application.bot.set_my_commands(commands)
+    commands_ky = [
+        BotCommand("start", "Башкы меню"),
+        BotCommand("profile", "Менин анкетам"),
+        BotCommand("update", "Кайра толтуруу"),
+        BotCommand("language", "Тилди тандоо"),
+        BotCommand("help", "Жардам"),
+    ]
+    await application.bot.set_my_commands(commands_ru, language_code="ru")
+    await application.bot.set_my_commands(commands_ky, language_code="ky")
+    await application.bot.set_my_commands(commands_ru)
+    await application.bot.set_chat_menu_button(menu_button=MenuButtonCommands())
     application.bot_data["activity_prompt_task"] = asyncio.create_task(activity_prompt_loop(application))
 
 
@@ -101,7 +113,8 @@ def main():
 
     # Регистрируем хендлеры
     app.add_handler(get_registration_handler())  # ConversationHandler (приоритетнее)
-    app.add_handler(get_start_handler())
+    for handler in get_start_handlers():
+        app.add_handler(handler)
     for handler in get_profile_handlers():
         app.add_handler(handler)
     for handler in get_activity_status_handlers():

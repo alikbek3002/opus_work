@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { BadgePercent, Megaphone, Users, CreditCard, LogOut, LogIn } from 'lucide-react';
+import { BadgePercent, Megaphone, Users, CreditCard, LogOut, LogIn, Menu, X, Settings, User } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../hooks/useTariffs';
 import LoginModal from './LoginModal';
@@ -26,12 +26,17 @@ export default function Layout() {
 
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const handleOpenLogin = () => setIsLoginModalOpen(true);
         window.addEventListener('openLoginModal', handleOpenLogin);
         return () => window.removeEventListener('openLoginModal', handleOpenLogin);
     }, []);
+
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [location.pathname]);
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -70,15 +75,37 @@ export default function Layout() {
                         </span>
                     </div>
                 </div>
-                <div className="container flex h-16 sm:h-20 items-center justify-between mx-auto px-3 sm:px-4 max-w-7xl">
-                    <Link to="/" className="flex items-center gap-3 flex-shrink-0">
+                <div className="container relative flex h-16 sm:h-20 items-center justify-between mx-auto px-3 sm:px-4 max-w-7xl">
+                    <Link to="/" className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
                         <div className="flex h-10 sm:h-16 items-center justify-center shrink-0">
                             <img src="/logo.png" alt="Opus" className="h-full w-auto object-contain" />
                         </div>
-                        <span className="text-xl sm:text-2xl font-bold tracking-tight inline-block text-primary rubik-mono-one-regular ml-1">Анкеты</span>
+                        <span className="text-lg sm:text-2xl font-bold tracking-tight inline-block text-primary rubik-mono-one-regular ml-1">Анкеты</span>
                     </Link>
 
-                    <nav className="flex items-center gap-3 sm:gap-6">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        <div className="flex flex-col items-end text-[10px] sm:text-[11px] leading-[1.1] sm:leading-tight text-muted-foreground shrink-0 whitespace-nowrap">
+                            <span>
+                                Остаток: <span className="font-semibold text-foreground">{subscription?.cards_remaining ?? 0}</span>
+                            </span>
+                            {subscription?.daily_limit ? (
+                                <span>
+                                    Сегодня: <span className="font-semibold text-foreground">{subscription.daily_views_remaining ?? 0}/{subscription.daily_limit}</span>
+                                </span>
+                            ) : null}
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setIsMobileMenuOpen((previous) => !previous)}
+                            className="inline-flex sm:hidden h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground shadow-sm"
+                            aria-label={isMobileMenuOpen ? "Закрыть меню" : "Открыть меню"}
+                        >
+                            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        </button>
+                    </div>
+
+                    <nav className="hidden sm:flex items-center gap-3 sm:gap-6">
                         <Link
                             to="/dashboard"
                             className={`flex items-center gap-2 text-xs sm:text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/dashboard' || location.pathname === '/' ? 'text-primary' : 'text-muted-foreground'
@@ -95,21 +122,10 @@ export default function Layout() {
                             <CreditCard strokeWidth={2.5} className="w-4 h-4" />
                             <span className="hidden sm:inline-block">Тарифы</span>
                         </Link>
-
                         <div className="h-6 w-px bg-border mx-1 sm:mx-2 hidden sm:block"></div>
 
                         {isAuthenticated ? (
                             <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="flex flex-col items-end text-[10px] sm:text-[11px] leading-[1.1] sm:leading-tight text-muted-foreground ml-1 sm:ml-0 shrink-0 whitespace-nowrap">
-                                    <span>
-                                        Остаток: <span className="font-semibold text-foreground">{subscription?.cards_remaining ?? 0}</span>
-                                    </span>
-                                    {subscription?.daily_limit ? (
-                                        <span>
-                                            Сегодня: <span className="font-semibold text-foreground">{subscription.daily_views_remaining ?? 0}/{subscription.daily_limit}</span>
-                                        </span>
-                                    ) : null}
-                                </div>
                                 <button
                                     onClick={() => setIsSettingsModalOpen(true)}
                                     className="text-xs sm:text-sm font-medium hover:text-primary transition-colors flex items-center gap-1.5 sm:gap-2"
@@ -134,6 +150,65 @@ export default function Layout() {
                             </button>
                         )}
                     </nav>
+
+                    {isMobileMenuOpen ? (
+                        <div className="absolute right-3 top-[calc(100%-0.25rem)] z-50 w-[250px] rounded-2xl border border-border/80 bg-background/95 p-3 shadow-2xl backdrop-blur sm:hidden">
+                            <div className="grid gap-2">
+                                <Link
+                                    to="/"
+                                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium hover:bg-muted"
+                                >
+                                    <Users className="h-4 w-4" />
+                                    Анкеты
+                                </Link>
+                                <Link
+                                    to="/tariffs"
+                                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium hover:bg-muted"
+                                >
+                                    <CreditCard className="h-4 w-4" />
+                                    Тарифы
+                                </Link>
+                                {isAuthenticated ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsMobileMenuOpen(false);
+                                                setIsSettingsModalOpen(true);
+                                            }}
+                                            className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium hover:bg-muted"
+                                        >
+                                            <Settings className="h-4 w-4" />
+                                            Аккаунт
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsMobileMenuOpen(false);
+                                                logout();
+                                            }}
+                                            className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-destructive hover:bg-destructive/10"
+                                        >
+                                            <LogOut className="h-4 w-4" />
+                                            Выйти
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsMobileMenuOpen(false);
+                                            setIsLoginModalOpen(true);
+                                        }}
+                                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium hover:bg-muted"
+                                    >
+                                        <User className="h-4 w-4" />
+                                        Войти
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ) : null}
                 </div>
             </header>
 

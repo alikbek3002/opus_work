@@ -23,7 +23,7 @@ export const EmployeeCard = React.forwardRef<HTMLDivElement, EmployeeCardProps>(
                         {employee.telegram_id ? (
                             <div className="relative h-14 w-14 overflow-hidden rounded-full border border-primary/10 bg-muted shrink-0 shadow-sm">
                                 <img
-                                    src={getPhotoUrl(employee.telegram_id)}
+                                    src={getPhotoUrl(employee.telegram_id, employee.created_at)}
                                     alt={employee.full_name}
                                     className="h-full w-full object-cover"
                                     onError={(e) => {

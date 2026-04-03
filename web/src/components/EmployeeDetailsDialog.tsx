@@ -139,7 +139,7 @@ export default function EmployeeDetailsDialog({
                                     title="Нажмите, чтобы увеличить фото"
                                 >
                                     <img
-                                        src={getPhotoUrl(photoTelegramId)}
+                                        src={getPhotoUrl(photoTelegramId, resolvedProfile.created_at)}
                                         alt={employee.full_name}
                                         className="h-16 w-16 sm:h-24 sm:w-24 object-cover rounded-full border-2 border-border/50 bg-background shadow-sm"
                                         onError={(e) => {
@@ -359,7 +359,7 @@ export default function EmployeeDetailsDialog({
                         <X className="w-6 h-6 sm:w-8 sm:h-8" />
                     </button>
                     <img
-                        src={getPhotoUrl(photoTelegramId)}
+                        src={getPhotoUrl(photoTelegramId, resolvedProfile.created_at)}
                         alt={employee.full_name}
                         className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
                         onClick={(e) => e.stopPropagation()}

@@ -3,6 +3,8 @@ from html import escape
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
+from i18n import normalize_language
+
 PART_TIME_EMPLOYMENT = "Подработка"
 FULL_TIME_EMPLOYMENT = "Полная занятость"
 
@@ -40,6 +42,41 @@ ACTIVITY_SIGNAL_META: dict[str, dict[str, object]] = {
     },
 }
 
+ACTIVITY_SIGNAL_META_KY: dict[str, dict[str, object]] = {
+    PART_TIME_EMPLOYMENT: {
+        "title": "Сменага даярдык",
+        "question": "Жакынкы күндөрү сменага канчалык даярсыз?",
+        "options": [
+            ("high", "Бүгүн же эртең чыга алам"),
+            ("medium", "Жакынкы күндөрү чыга алам"),
+            ("low", "Азырынча тандап карап жатам"),
+        ],
+        "labels": {
+            "high": "Бүгүн же эртең чыга алат",
+            "medium": "Жакынкы күндөрү чыга алат",
+            "low": "Тандап чыгат",
+        },
+    },
+    FULL_TIME_EMPLOYMENT: {
+        "title": "Жумуш издөө активдүүлүгү",
+        "question": "Азыр туруктуу жумушту канчалык активдүү издеп жатасыз?",
+        "options": [
+            ("high", "Азыр активдүү издеп жатам"),
+            ("medium", "Жакшы сунуштарды карайм"),
+            ("low", "Шашылбайм, бирок ачыкмын"),
+        ],
+        "labels": {
+            "high": "Жумушту активдүү издеп жатат",
+            "medium": "Жакшы сунуштарды карайт",
+            "low": "Шашылбай издеп жатат",
+        },
+    },
+}
+
+
+def get_activity_bundle(language: str) -> dict[str, dict[str, object]]:
+    return ACTIVITY_SIGNAL_META_KY if normalize_language(language) == "ky" else ACTIVITY_SIGNAL_META
+
 
 def parse_iso_datetime(value: str | None) -> datetime | None:
     if not value:
@@ -54,11 +91,11 @@ def parse_iso_datetime(value: str | None) -> datetime | None:
     return parsed
 
 
-def get_activity_signal_meta(employment_type: str | None, signal: str | None) -> dict[str, str] | None:
+def get_activity_signal_meta(employment_type: str | None, signal: str | None, language: str = "ru") -> dict[str, str] | None:
     if not employment_type or not signal:
         return None
 
-    employment_meta = ACTIVITY_SIGNAL_META.get(employment_type)
+    employment_meta = get_activity_bundle(language).get(employment_type)
     if not employment_meta:
         return None
 
@@ -72,8 +109,8 @@ def get_activity_signal_meta(employment_type: str | None, signal: str | None) ->
     }
 
 
-def get_activity_placeholder(employment_type: str | None) -> dict[str, str] | None:
-    employment_meta = ACTIVITY_SIGNAL_META.get(employment_type or "")
+def get_activity_placeholder(employment_type: str | None, language: str = "ru") -> dict[str, str] | None:
+    employment_meta = get_activity_bundle(language).get(employment_type or "")
     if not employment_meta:
         return None
     return {
@@ -82,8 +119,8 @@ def get_activity_placeholder(employment_type: str | None) -> dict[str, str] | No
     }
 
 
-def build_activity_signal_keyboard(employment_type: str | None) -> InlineKeyboardMarkup | None:
-    employment_meta = ACTIVITY_SIGNAL_META.get(employment_type or "")
+def build_activity_signal_keyboard(employment_type: str | None, language: str = "ru") -> InlineKeyboardMarkup | None:
+    employment_meta = get_activity_bundle(language).get(employment_type or "")
     if not employment_meta:
         return None
 
@@ -99,12 +136,19 @@ def build_activity_signal_keyboard(employment_type: str | None) -> InlineKeyboar
     return InlineKeyboardMarkup(keyboard)
 
 
-def build_activity_signal_prompt(full_name: str | None, employment_type: str | None) -> str | None:
-    employment_meta = ACTIVITY_SIGNAL_META.get(employment_type or "")
+def build_activity_signal_prompt(full_name: str | None, employment_type: str | None, language: str = "ru") -> str | None:
+    employment_meta = get_activity_bundle(language).get(employment_type or "")
     if not employment_meta:
         return None
 
     safe_name = escape(full_name or "Здравствуйте")
+    if normalize_language(language) == "ky":
+        return (
+            f"👋 {safe_name}, статусуңузду жаңыртып коюңуз.\n\n"
+            f"<b>{escape(str(employment_meta['question']))}</b>\n\n"
+            "Бул жооп анкетаңызда сайтта көрүнүп, иш берүүчүлөргө актуалдуулугуңузду жакшыраак түшүнүүгө жардам берет."
+        )
+
     return (
         f"👋 {safe_name}, обновите, пожалуйста, ваш статус.\n\n"
         f"<b>{escape(str(employment_meta['question']))}</b>\n\n"
@@ -124,11 +168,12 @@ def format_employee_activity_status(employee: dict) -> str | None:
     meta = get_activity_signal_meta(
         employee.get("employment_type"),
         employee.get("activity_signal"),
+        employee.get("preferred_language") or "ru",
     )
     if meta:
         return f"{meta['title']}: {meta['label']}"
 
-    placeholder = get_activity_placeholder(employee.get("employment_type"))
+    placeholder = get_activity_placeholder(employee.get("employment_type"), employee.get("preferred_language") or "ru")
     if placeholder:
         return f"{placeholder['title']}: {placeholder['label']}"
 

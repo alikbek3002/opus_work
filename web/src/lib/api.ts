@@ -117,8 +117,13 @@ export const api = {
 /**
  * Генерирует URL для получения фото сотрудника
  */
-export const getPhotoUrl = (telegramId: number) => {
-    return `${API_BASE}/photos/${telegramId}`;
+export const getPhotoUrl = (telegramId: number, version?: string | null) => {
+    const searchParams = new URLSearchParams();
+    if (version) {
+        searchParams.set('v', version);
+    }
+    const suffix = searchParams.toString();
+    return `${API_BASE}/photos/${telegramId}${suffix ? `?${suffix}` : ''}`;
 };
 
 // ============================================
@@ -182,6 +187,7 @@ export interface EmployeeCard {
     activity_signal_updated_at: string | null;
     contact_opens_count: number;
     telegram_id: number | null;
+    created_at: string | null;
 }
 
 export interface EmployeeFullProfile extends EmployeeCard {
