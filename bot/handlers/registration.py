@@ -19,7 +19,7 @@ from telegram.ext import (
     filters,
 )
 
-from database import get_employee_by_telegram_id, save_employee
+from database import get_bot_user_settings, get_employee_by_telegram_id, save_employee
 from i18n import (
     get_display_options,
     language_name,
@@ -122,10 +122,15 @@ FIELD_LABELS = {
 
 def get_current_language(update: Update | None, context: ContextTypes.DEFAULT_TYPE) -> str:
     telegram_language = None
+    stored_language = None
     if update and update.effective_user:
         telegram_language = update.effective_user.language_code
+        user_settings = get_bot_user_settings(update.effective_user.id)
+        if user_settings:
+            stored_language = user_settings.get("preferred_language")
     return resolve_language(
         context_language=context.user_data.get("bot_language"),
+        stored_language=stored_language,
         telegram_language=telegram_language,
     )
 

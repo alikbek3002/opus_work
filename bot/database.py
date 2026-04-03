@@ -30,6 +30,34 @@ def get_employee_by_telegram_id(telegram_id: int) -> dict | None:
     return None
 
 
+def get_bot_user_settings(telegram_id: int) -> dict | None:
+    """Возвращает сохранённые настройки пользователя бота."""
+    response = (
+        supabase.table("bot_user_settings")
+        .select("*")
+        .eq("telegram_id", telegram_id)
+        .limit(1)
+        .execute()
+    )
+    if response.data:
+        return response.data[0]
+    return None
+
+
+def upsert_bot_user_settings(telegram_id: int, data: dict) -> dict:
+    """Сохраняет настройки пользователя бота отдельно от анкеты."""
+    payload = {
+        "telegram_id": telegram_id,
+        **data,
+    }
+    response = (
+        supabase.table("bot_user_settings")
+        .upsert(payload, on_conflict="telegram_id")
+        .execute()
+    )
+    return response.data[0] if response.data else {}
+
+
 def update_employee(telegram_id: int, data: dict) -> dict:
     """Обновляет данные сотрудника."""
     response = (
