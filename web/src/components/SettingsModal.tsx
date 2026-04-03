@@ -64,7 +64,7 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                 <DialogHeader>
                     <DialogTitle>Личный кабинет</DialogTitle>
                     <DialogDescription>
-                        Управление вашим профилем, подпиской и историей открытых кандидатов.
+                        Управление вашим профилем, подпиской и историей открытых анкет.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -111,7 +111,7 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                                 </div>
                             ) : (
                                 <p className="text-sm text-balance text-muted-foreground">
-                                    У вас пока нет активной подписки. Перейдите в раздел "Тарифы", чтобы начать поиск кандидатов.
+                                    У вас пока нет активной подписки. Перейдите в раздел "Тарифы", чтобы начать поиск анкет.
                                 </p>
                             )}
                         </div>
@@ -150,9 +150,9 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                     <div className="rounded-lg border p-4">
                         <div className="mb-4 flex items-center justify-between gap-4">
                             <div>
-                                <h4 className="text-sm font-semibold">История открытых кандидатов</h4>
+                                <h4 className="text-sm font-semibold">История открытых анкет</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    Здесь сохраняются все кандидаты, которых вы уже открывали.
+                                    Здесь сохраняются все анкеты, которые вы уже открывали.
                                 </p>
                             </div>
                             <div className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
@@ -168,7 +168,7 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                             </div>
                         ) : viewedHistory.length === 0 ? (
                             <div className="flex min-h-[240px] items-center justify-center rounded-2xl border border-dashed bg-muted/20 px-6 text-center text-sm text-muted-foreground">
-                                Пока нет открытых кандидатов. Когда откроете первую анкету, история появится здесь.
+                                Пока нет открытых анкет. Когда откроете первую анкету, история появится здесь.
                             </div>
                         ) : (
                             <div className="max-h-[58vh] space-y-3 overflow-y-auto pr-1">
@@ -228,7 +228,7 @@ export default function SettingsModal({ isOpen, onClose, userEmail }: SettingsMo
                                                             </Button>
                                                         ) : employee.phone_number ? (
                                                             <span className="text-xs text-muted-foreground">
-                                                                У кандидата нет WhatsApp. Доступен обычный номер: {employee.phone_number}
+                                                                У сотрудника нет WhatsApp. Доступен обычный номер: {employee.phone_number}
                                                             </span>
                                                         ) : (
                                                             <span className="text-xs text-muted-foreground">

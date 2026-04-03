@@ -42,6 +42,7 @@ class EmployeeCard(BaseModel):
     specializations: Optional[str] = None
     experience: Optional[str] = None
     employment_type: Optional[str] = None
+    schedule: Optional[str] = None
     opus_experience: Optional[str] = None
     is_verified: bool = False
     verification_status: VerificationStatus = "pending"
@@ -80,6 +81,7 @@ class TariffPlan(BaseModel):
     name: str
     period: str
     card_limit: int
+    daily_limit: Optional[int] = None
     price: int
     description: Optional[str] = None
 

@@ -15,7 +15,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if existing:
         await update.message.reply_text(
             f"👋 Привет, {existing['full_name']}!\n\n"
-            f"Вы уже зарегистрированы в системе Opus.\n"
+            f"Вы уже зарегистрированы в системе OPUS Анкеты.\n"
             f"Используйте /profile чтобы посмотреть ваш профиль\n"
             f"или /update чтобы удалить анкету и заполнить её заново."
         )
@@ -28,7 +28,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     await update.message.reply_text(
         f"👋 Здравствуйте, {user.first_name}!\n\n"
-        f"Добро пожаловать в *Opus* — платформу для поиска работы.\n\n"
+        f"Добро пожаловать в *OPUS Анкеты* — платформу для поиска работы.\n\n"
         f"Зарегистрируйте своё резюме, чтобы работодатели могли найти вас.\n"
         f"Нажмите кнопку ниже, чтобы начать регистрацию.",
         reply_markup=reply_markup,

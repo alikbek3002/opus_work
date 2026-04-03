@@ -7,10 +7,10 @@ from database import supabase
 
 BISHKEK_TZ = ZoneInfo("Asia/Bishkek")
 DAILY_LIMITS = {
-    "day": 3,
-    "week": 15,
-    "month": 20,
-    "quarter": 15,
+    "day": None,
+    "week": 8,
+    "month": 15,
+    "quarter": 22,
 }
 
 
@@ -46,7 +46,12 @@ def get_daily_views_used(*, employer_id: str, subscription_id: str) -> int:
 
 def enrich_subscription(subscription: dict) -> dict:
     tariff = subscription.get("tariff_plans") or {}
-    daily_limit = get_daily_limit(tariff.get("period"))
+    stored_daily_limit = subscription.get("daily_limit")
+    daily_limit = (
+        int(stored_daily_limit)
+        if isinstance(stored_daily_limit, int)
+        else get_daily_limit(tariff.get("period"))
+    )
     daily_views_used = 0
     daily_views_remaining = None
 

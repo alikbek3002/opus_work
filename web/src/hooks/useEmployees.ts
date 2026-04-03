@@ -35,8 +35,9 @@ export function useEmployees(filters?: Omit<EmployeeQueryParams, 'limit'>) {
             districts: sortedDistricts,
             specializations: sortedSpecializations,
         }),
-        // Список сотрудников обновляется нечасто
-        staleTime: 60 * 1000, // 1 минута
+        staleTime: 10 * 1000,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
         // Placeholder пока загружается — показываем пустой массив
         placeholderData: (previousData) => previousData,
     });
@@ -49,7 +50,8 @@ export function useViewedEmployees() {
         queryKey: queryKeys.employees.viewed(),
         queryFn: () => api.getViewedEmployees(),
         enabled: !!token,
-        staleTime: 30 * 1000,
+        staleTime: 10 * 1000,
+        refetchOnWindowFocus: true,
     });
 }
 
@@ -60,7 +62,8 @@ export function useViewedHistory() {
         queryKey: queryKeys.employees.history(),
         queryFn: () => api.getViewedHistory(),
         enabled: !!token,
-        staleTime: 30 * 1000,
+        staleTime: 10 * 1000,
+        refetchOnWindowFocus: true,
     });
 }
 

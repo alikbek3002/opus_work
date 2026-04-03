@@ -64,7 +64,7 @@ async def activity_prompt_loop(application) -> None:
 
 async def on_post_init(application) -> None:
     commands = [
-        BotCommand("start", "Запустить бота"),
+        BotCommand("start", "Запустить OPUS Анкеты"),
         BotCommand("profile", "Моя анкета"),
         BotCommand("update", "Редактировать анкету"),
         BotCommand("help", "Помощь")
@@ -107,7 +107,7 @@ def main():
     for handler in get_activity_status_handlers():
         app.add_handler(handler)
 
-    logger.info("🤖 Opus Bot запущен!")
+    logger.info("🤖 OPUS Анкеты Bot запущен!")
     app.run_polling(drop_pending_updates=True)
 
 

@@ -30,6 +30,7 @@ from database import get_employee_by_telegram_id, save_employee
     SPECIALIZATIONS,
     EXPERIENCE,
     DISTRICT,
+    DISTRICT_CUSTOM,
     EMPLOYMENT_TYPE,
     WEEKEND_WORK,
     SANITARY_BOOK,
@@ -37,7 +38,7 @@ from database import get_employee_by_telegram_id, save_employee
     CONTACT_METHOD,
     PHONE_NUMBER,
     CONFIRM,
-) = range(14)
+) = range(15)
 
 CONTACT_METHOD_OPTIONS = ["WhatsApp", "Обычный номер"]
 GENDER_OPTIONS = ["Мужчина", "Женщина"]
@@ -115,7 +116,13 @@ def build_reply_keyboard(options: list[str], columns: int = 2) -> ReplyKeyboardM
     rows = [options[index:index + columns] for index in range(0, len(options), columns)]
     return ReplyKeyboardMarkup(rows + [["Пропустить"]], resize_keyboard=True, one_time_keyboard=True)
 
-def build_multiselect_inline_keyboard(options: list[str], selected: set[str], prefix: str, columns: int = 2) -> InlineKeyboardMarkup:
+def build_multiselect_inline_keyboard(
+    options: list[str],
+    selected: set[str],
+    prefix: str,
+    columns: int = 2,
+    add_custom_button: bool = False,
+) -> InlineKeyboardMarkup:
     """Строит Inline-клавиатуру для множественного выбора с галочками."""
     keyboard = []
     
@@ -131,8 +138,29 @@ def build_multiselect_inline_keyboard(options: list[str], selected: set[str], pr
     # Всегда добавляем кнопку Готово/Пропустить
     done_text = f"▶️ Далее (выбрано: {len(selected)})" if selected else "▶️ Пропустить (не выбрано)"
     keyboard.append([InlineKeyboardButton(done_text, callback_data=f"{prefix}_done")])
+
+    if add_custom_button:
+        keyboard.append([InlineKeyboardButton("✍️ Указать свой район", callback_data=f"{prefix}_custom")])
         
     return InlineKeyboardMarkup(keyboard)
+
+
+def is_skip_input(text: str | None) -> bool:
+    if not text:
+        return False
+    return text.strip().lower() in {"пропустить", "skip", "⏭ пропустить", "пропуск"}
+
+
+def derive_ready_for_weekends(schedule: str | None) -> bool | None:
+    if not schedule:
+        return None
+
+    normalized = schedule.strip().lower()
+    if "выход" in normalized:
+        return True
+    if "будни" in normalized:
+        return False
+    return None
 
 
 def build_confirmation_keyboard() -> InlineKeyboardMarkup:
@@ -279,7 +307,7 @@ async def start_registration(update: Update, context: ContextTypes.DEFAULT_TYPE)
     context.user_data["telegram_username"] = query.from_user.username
 
     await query.edit_message_text(
-        "📝 *Регистрация в Opus*\n\n"
+        "📝 *Регистрация в OPUS Анкеты*\n\n"
         "Давайте заполним вашу анкету.\n"
         "Вы можете отменить регистрацию в любой момент командой /cancel\n\n"
         "Шаг 1/12: Как вас зовут?",
@@ -314,13 +342,13 @@ async def age_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     """Получаем возраст."""
     text = update.message.text.strip()
 
-    if text == "Пропустить":
+    if is_skip_input(text):
         context.user_data["age"] = None
     elif not text.isdigit() or int(text) < 14 or int(text) > 100:
         await update.message.reply_text("⚠️ Пожалуйста, введите корректный возраст (число от 14 до 100):")
         return AGE
 
-    if text != "Пропустить":
+    if not is_skip_input(text):
         context.user_data["age"] = int(text)
 
     if context.user_data.get("edit_field") == "age":
@@ -339,14 +367,14 @@ async def gender_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     """Получаем пол из фиксированного списка."""
     gender = update.message.text.strip()
 
-    if gender not in GENDER_OPTIONS and gender != "Пропустить":
+    if gender not in GENDER_OPTIONS and not is_skip_input(gender):
         await update.message.reply_text(
             "⚠️ Пожалуйста, выберите пол кнопкой ниже:",
             reply_markup=build_reply_keyboard(GENDER_OPTIONS),
         )
         return GENDER
 
-    context.user_data["gender"] = gender if gender != "Пропустить" else None
+    context.user_data["gender"] = gender if not is_skip_input(gender) else None
 
     if context.user_data.get("edit_field") == "gender":
         context.user_data.pop("edit_field", None)
@@ -354,7 +382,7 @@ async def gender_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 4/12: Сделайте фото для анкеты или вставьте из галереи. Анкеты с фото открываются на 70% чаще!",
+        "Шаг 4/12: Фото для анкеты (можно пропустить).",
         reply_markup=ReplyKeyboardMarkup([["Пропустить"]], resize_keyboard=True, one_time_keyboard=True),
     )
     return PHOTO
@@ -362,7 +390,7 @@ async def gender_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Получаем фото сотрудника."""
-    if update.message.text and update.message.text.strip() == "Пропустить":
+    if update.message.text and is_skip_input(update.message.text):
         context.user_data["photo_file_id"] = None
     else:
         photos = update.message.photo or []
@@ -437,14 +465,14 @@ async def experience_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     """Получаем опыт работы из кнопок."""
     experience = update.message.text.strip()
 
-    if experience not in EXPERIENCE_OPTIONS and experience != "Пропустить":
+    if experience not in EXPERIENCE_OPTIONS and not is_skip_input(experience):
         await update.message.reply_text(
             "⚠️ Пожалуйста, выберите опыт работы кнопкой ниже:",
             reply_markup=build_reply_keyboard(EXPERIENCE_OPTIONS),
         )
         return EXPERIENCE
 
-    context.user_data["experience"] = experience if experience != "Пропустить" else None
+    context.user_data["experience"] = experience if not is_skip_input(experience) else None
 
     if context.user_data.get("edit_field") == "experience":
         context.user_data.pop("edit_field", None)
@@ -454,8 +482,8 @@ async def experience_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     from telegram import ReplyKeyboardRemove
     await update.message.reply_text("Принято.", reply_markup=ReplyKeyboardRemove())
     await update.message.reply_text(
-        "Шаг 7/12: В каких районах готовы работать? Можно выбрать несколько:",
-        reply_markup=build_multiselect_inline_keyboard(DISTRICT_OPTIONS, set(), "dist"),
+        "Шаг 7/12: В каких районах готовы работать? Можно выбрать несколько или добавить свой район:",
+        reply_markup=build_multiselect_inline_keyboard(DISTRICT_OPTIONS, set(), "dist", add_custom_button=True),
     )
     return DISTRICT
 
@@ -474,7 +502,55 @@ async def district_toggle_handler(update: Update, context: ContextTypes.DEFAULT_
         selected.add(dist)
 
     await query.edit_message_reply_markup(
-        reply_markup=build_multiselect_inline_keyboard(DISTRICT_OPTIONS, selected, "dist")
+        reply_markup=build_multiselect_inline_keyboard(DISTRICT_OPTIONS, selected, "dist", add_custom_button=True)
+    )
+    return DISTRICT
+
+
+async def district_custom_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Запрашивает пользовательский район, если его нет в списке."""
+    query = update.callback_query
+    await query.answer()
+    await query.message.reply_text(
+        "✍️ Напишите свой район одним сообщением.\n"
+        "Если передумали, напишите: Назад",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    return DISTRICT_CUSTOM
+
+
+async def district_custom_input_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Принимает пользовательский район и возвращает к выбору районов."""
+    custom_district = update.message.text.strip()
+
+    if custom_district.lower() == "назад":
+        await update.message.reply_text(
+            "Продолжаем выбор районов:",
+            reply_markup=build_multiselect_inline_keyboard(
+                DISTRICT_OPTIONS,
+                context.user_data.setdefault("district_set", set()),
+                "dist",
+                add_custom_button=True,
+            ),
+        )
+        return DISTRICT
+
+    if len(custom_district) < 2:
+        await update.message.reply_text("⚠️ Укажите район хотя бы из 2 символов.")
+        return DISTRICT_CUSTOM
+
+    selected = context.user_data.setdefault("district_set", set())
+    selected.add(custom_district)
+
+    await update.message.reply_text(
+        f"✅ Добавлен район: {custom_district}\n"
+        "Можно выбрать ещё районы или нажать «Далее».",
+        reply_markup=build_multiselect_inline_keyboard(
+            DISTRICT_OPTIONS,
+            selected,
+            "dist",
+            add_custom_button=True,
+        ),
     )
     return DISTRICT
 
@@ -549,14 +625,14 @@ async def schedule_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     """Получаем график работы."""
     answer = update.message.text.strip()
 
-    if answer not in SCHEDULE_OPTIONS and answer != "Пропустить":
+    if answer not in SCHEDULE_OPTIONS and not is_skip_input(answer):
         await update.message.reply_text(
             "⚠️ Выберите график работы кнопкой ниже:",
             reply_markup=build_reply_keyboard(SCHEDULE_OPTIONS),
         )
         return WEEKEND_WORK
 
-    context.user_data["schedule"] = answer if answer != "Пропустить" else None
+    context.user_data["schedule"] = answer if not is_skip_input(answer) else None
 
     if context.user_data.get("edit_field") == "schedule":
         context.user_data.pop("edit_field", None)
@@ -573,21 +649,30 @@ async def schedule_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 async def sanitary_book_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     answer = update.message.text.strip()
-    if answer not in SANITARY_BOOK_OPTIONS and answer != "Пропустить":
+    if answer not in SANITARY_BOOK_OPTIONS and not is_skip_input(answer):
         await update.message.reply_text(
             "⚠️ Выберите вариант кнопкой ниже:", 
             reply_markup=build_reply_keyboard(SANITARY_BOOK_OPTIONS)
         )
         return SANITARY_BOOK
         
-    context.user_data["has_sanitary_book"] = answer if answer != "Пропустить" else None
+    context.user_data["has_sanitary_book"] = answer if not is_skip_input(answer) else None
     if context.user_data.get("edit_field") == "has_sanitary_book":
         context.user_data.pop("edit_field", None)
         await show_confirmation(update, context)
         return CONFIRM
         
     await update.message.reply_text(
-        "Шаг 11/12: Напишите 2-3 предложения о себе:",
+        "Шаг 11/12: Напишите коротко о себе:\n\n"
+        "✍️ Напишите 1-2 предложения о себе.\n\n"
+        "Например:\n"
+        "- Где работали и сколько\n"
+        "- Ваши сильные стороны\n"
+        "- Что отличает вас от других\n\n"
+        "Пример: «Работала официанткой 2 года, знаю сервировку.\n"
+        "Всегда прихожу вовремя и улыбаюсь гостям.»\n\n"
+        "Это поле видят работодатели — напишите честно и кратко.\n"
+        "Можно нажать «Пропустить».",
         reply_markup=ReplyKeyboardMarkup([["Пропустить"]], resize_keyboard=True, one_time_keyboard=True),
     )
     return ABOUT_ME
@@ -597,10 +682,10 @@ async def about_me_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     """Получаем краткий текст о сотруднике."""
     about_me = update.message.text.strip()
 
-    if about_me == "Пропустить":
+    if is_skip_input(about_me):
         context.user_data["about_me"] = None
-    elif len(about_me) < 20:
-        await update.message.reply_text("⚠️ Напишите чуть подробнее (желательно 2-3 предложения).")
+    elif len(about_me) < 10:
+        await update.message.reply_text("⚠️ Напишите хотя бы 1 короткое предложение или нажмите «Пропустить».")
         return ABOUT_ME
     else:
         context.user_data["about_me"] = about_me
@@ -623,14 +708,14 @@ async def contact_method_handler(update: Update, context: ContextTypes.DEFAULT_T
     """Получаем способ связи по телефону."""
     method = update.message.text.strip()
 
-    if method not in CONTACT_METHOD_OPTIONS and method != "Пропустить":
+    if method not in CONTACT_METHOD_OPTIONS and not is_skip_input(method):
         await update.message.reply_text(
             "⚠️ Пожалуйста, выберите способ связи кнопкой ниже:",
             reply_markup=build_reply_keyboard(CONTACT_METHOD_OPTIONS),
         )
         return CONTACT_METHOD
 
-    context.user_data["has_whatsapp"] = (method == "WhatsApp") if method != "Пропустить" else None
+    context.user_data["has_whatsapp"] = (method == "WhatsApp") if not is_skip_input(method) else None
 
     if context.user_data.get("edit_field") == "has_whatsapp":
         context.user_data.pop("edit_field", None)
@@ -731,8 +816,8 @@ async def edit_field(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     if field == "district":
         await query.message.reply_text(
-            "Выберите районы для работы (можно несколько):",
-            reply_markup=build_multiselect_inline_keyboard(DISTRICT_OPTIONS, set(), "dist"),
+            "Выберите районы для работы (можно несколько) или добавьте свой:",
+            reply_markup=build_multiselect_inline_keyboard(DISTRICT_OPTIONS, set(), "dist", add_custom_button=True),
         )
         return DISTRICT
 
@@ -760,7 +845,7 @@ async def edit_field(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     if field == "about_me":
         await query.message.reply_text(
-            "Напишите обновлённый текст о себе (2-3 предложения):",
+            "Напишите обновлённый текст о себе (1-2 предложения) или «Пропустить»:",
             reply_markup=ReplyKeyboardRemove(),
         )
         return ABOUT_ME
@@ -807,6 +892,7 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
         "district": data.get("district"),
         "employment_type": data.get("employment_type"),
         "schedule": data.get("schedule"),
+        "ready_for_weekends": derive_ready_for_weekends(data.get("schedule")),
         "has_sanitary_book": data.get("has_sanitary_book"),
         "about_me": data.get("about_me"),
         "has_recommendations": None,
@@ -909,8 +995,10 @@ def get_registration_handler() -> ConversationHandler:
             EXPERIENCE: [MessageHandler(filters.TEXT & ~filters.COMMAND, experience_handler)],
             DISTRICT: [
                 CallbackQueryHandler(district_toggle_handler, pattern="^dist_toggle:"),
+                CallbackQueryHandler(district_custom_handler, pattern="^dist_custom$"),
                 CallbackQueryHandler(district_done_handler, pattern="^dist_done$"),
             ],
+            DISTRICT_CUSTOM: [MessageHandler(filters.TEXT & ~filters.COMMAND, district_custom_input_handler)],
             EMPLOYMENT_TYPE: [
                 CallbackQueryHandler(employment_type_toggle_handler, pattern="^emp_toggle:"),
                 CallbackQueryHandler(employment_type_done_handler, pattern="^emp_done$"),

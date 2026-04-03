@@ -39,7 +39,6 @@ export default function MultiSelectDropdown({
             ? selectedValues.filter((item) => item !== value)
             : [...selectedValues, value];
         onChange(next);
-        setIsOpen(false);
     };
 
     const removeValue = (value: string) => {

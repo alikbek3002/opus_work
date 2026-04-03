@@ -37,7 +37,7 @@ export default function Tariffs() {
         }
     };
 
-    const orderedTariffs = (tariffs as any[])
+    const orderedTariffs = tariffs
         .filter((t) => t.period === 'day' || t.period === 'week' || t.period === 'month' || t.period === 'quarter')
         .sort((a, b) => {
             const order = { day: 0, week: 1, month: 2, quarter: 3 } as const;
@@ -55,7 +55,7 @@ export default function Tariffs() {
 
     const getDurationText = (period: string) => {
         const texts: Record<string, string> = {
-            day: '1 день',
+            day: 'пробный период',
             week: '7 дней',
             month: '30 дней',
             quarter: '90 дней'
@@ -63,13 +63,25 @@ export default function Tariffs() {
         return texts[period] || period;
     };
 
+    const discountByPeriod: Record<string, string | null> = {
+        day: null,
+        week: '34%',
+        month: '45%',
+        quarter: '40%',
+    };
+
     return (
         <div className="flex flex-col gap-10 w-full animate-in fade-in duration-500 py-12">
             <div className="text-center max-w-2xl mx-auto space-y-4 px-4 sm:px-0">
                 <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Тарифные планы</h1>
                 <p className="text-muted-foreground text-base sm:text-lg">
-                    Найдите нужного кандидата за 15 минут
+                    Найдите нужного сотрудника за 15 минут
                 </p>
+                <div className="rounded-2xl border-2 border-primary/30 bg-primary/10 px-4 py-4 sm:px-6 sm:py-5">
+                    <p className="text-center text-sm sm:text-base font-extrabold tracking-wide text-primary uppercase">
+                        Ранний доступ для первых 50 заказчиков со скидкой до 45%. Скидка сохраняется при продлении.
+                    </p>
+                </div>
 
                 {isAuthenticated && subscription && (
                     <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-3 bg-primary/10 text-primary px-4 py-2 rounded-full font-medium text-sm border border-primary/20">
@@ -105,6 +117,7 @@ export default function Tariffs() {
                     {orderedTariffs.map((tariff) => {
                         const isPopular = tariff.period === 'month';
                         const isLoading = loadingTariffId === tariff.id;
+                        const discount = discountByPeriod[tariff.period] ?? null;
 
                         return (
                             <PricingCard.Card
@@ -120,9 +133,16 @@ export default function Tariffs() {
                                             <ShieldCheck className={cn("w-4 h-4", isPopular ? "text-primary" : "")} />
                                             <span className={cn(isPopular ? "text-primary font-semibold" : "")}>{tariff.name}</span>
                                         </PricingCard.PlanName>
-                                        {isPopular && (
-                                            <PricingCard.Badge className="bg-primary/10 text-primary border-primary/20">Популярный</PricingCard.Badge>
-                                        )}
+                                        <div className="flex items-center gap-2">
+                                            {isPopular && (
+                                                <PricingCard.Badge className="bg-primary/10 text-primary border-primary/20">Популярный</PricingCard.Badge>
+                                            )}
+                                            {discount && (
+                                                <PricingCard.Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                                                    Скидка {discount}
+                                                </PricingCard.Badge>
+                                            )}
+                                        </div>
                                     </PricingCard.Plan>
                                     <PricingCard.Price className="items-baseline">
                                         <div className="flex flex-col">
@@ -158,7 +178,7 @@ export default function Tariffs() {
 
                                 <PricingCard.Body className="flex flex-col flex-1 pb-6">
                                     <PricingCard.Description className="mb-4">
-                                        {tariff.description || `Доступ к базе проверенных кандидатов на ${getDurationText(tariff.period)}.`}
+                                        {tariff.description || `Доступ к базе анкет на ${getDurationText(tariff.period)}.`}
                                     </PricingCard.Description>
                                     <PricingCard.List className="mt-auto">
                                         <PricingCard.ListItem>
@@ -178,7 +198,7 @@ export default function Tariffs() {
                                         {tariff.period !== 'day' && (
                                             <PricingCard.ListItem>
                                                 <CheckCircle className="text-primary w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
-                                                <span>Умный поиск кандидатов</span>
+                                                <span>Умный поиск анкет</span>
                                             </PricingCard.ListItem>
                                         )}
                                     </PricingCard.List>

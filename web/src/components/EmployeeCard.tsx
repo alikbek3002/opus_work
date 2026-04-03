@@ -39,10 +39,13 @@ export const EmployeeCard = React.forwardRef<HTMLDivElement, EmployeeCardProps>(
                         <div className="flex-1 min-w-0 pt-0.5">
                             <h3 className="flex items-center gap-1.5 text-lg font-bold text-card-foreground leading-tight">
                                 <span className="line-clamp-2">
-                                    {employee.full_name} — {employee.age || "?"} лет — {employee.specializations || "Специализация уточняется"}
+                                    {employee.full_name} — {employee.age || "?"} лет — {employee.gender || "Пол не указан"}
                                 </span>
                                 {employee.is_verified && <BadgeCheck className="h-5 w-5 text-emerald-500 shrink-0" />}
                             </h3>
+                            <p className="mt-1 text-sm font-medium text-primary line-clamp-2">
+                                {employee.specializations || "Специализация уточняется"}
+                            </p>
 
                             <EmployeeActivityBadge
                                 employmentType={employee.employment_type}
@@ -64,12 +67,6 @@ export const EmployeeCard = React.forwardRef<HTMLDivElement, EmployeeCardProps>(
                         <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <span className="truncate">{employee.experience ? `Опыт: ${employee.experience}` : "Опыт работы не указан"}</span>
                     </div>
-                    {employee.gender && (
-                        <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="text-muted-foreground">•</span>
-                            <span>{employee.gender === "Мужчина" ? "Муж." : employee.gender === "Женщина" ? "Жен." : ""}</span>
-                        </div>
-                    )}
                 </div>
 
                 <button

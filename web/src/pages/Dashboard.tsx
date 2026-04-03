@@ -54,7 +54,22 @@ export default function Dashboard() {
 
     const handleOpenEmployee = useCallback((employee: EmployeeCardType) => {
         setSelectedEmployee(employee);
-    }, []);
+
+        if (!isAuthenticated || !viewedIds.has(employee.id)) {
+            return;
+        }
+
+        void viewMutation.mutateAsync(employee.id)
+            .then((profile) => {
+                setOpenedProfiles((prev) => ({
+                    ...prev,
+                    [employee.id]: profile,
+                }));
+            })
+            .catch(() => {
+                // Тихо игнорируем: старые данные уже есть в кэше истории.
+            });
+    }, [isAuthenticated, viewedIds, viewMutation]);
 
     const handleViewEmployee = useCallback(async (employeeId: string) => {
         if (!isAuthenticated) {
@@ -86,7 +101,7 @@ export default function Dashboard() {
         return (
             <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                <p className="text-muted-foreground font-medium">Загрузка кандидатов...</p>
+                <p className="text-muted-foreground font-medium">Загрузка анкет...</p>
             </div>
         );
     }
@@ -95,8 +110,8 @@ export default function Dashboard() {
         <div className="flex flex-col gap-8 w-full">
             <div className="flex flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Кандидаты</h1>
-                    <p className="text-muted-foreground mt-1">Найдите нужного кандидата за 15 минут</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Анкеты</h1>
+                    <p className="text-muted-foreground mt-1">Найдите нужного сотрудника за 15 минут</p>
                 </div>
                 <button
                     className="md:hidden flex items-center justify-center gap-2 rounded-xl border border-border/50 bg-card px-4 py-2 text-sm font-medium shadow-sm hover:bg-muted"
@@ -120,7 +135,7 @@ export default function Dashboard() {
                         options={EMPLOYEE_DISTRICT_OPTIONS}
                         selectedValues={searchDistricts}
                         onChange={setSearchDistricts}
-                        helperText="Один клик выбирает район и закрывает список"
+                        helperText="Можно выбрать несколько районов без закрытия списка"
                     />
                 </div>
 
@@ -131,7 +146,7 @@ export default function Dashboard() {
                         options={EMPLOYEE_SPECIALIZATION_OPTIONS}
                         selectedValues={searchSpecs}
                         onChange={setSearchSpecs}
-                        helperText="Один клик выбирает профессию и закрывает список"
+                        helperText="Можно выбрать несколько специализаций без закрытия списка"
                     />
                 </div>
 
@@ -140,7 +155,7 @@ export default function Dashboard() {
                         onClick={handleSearch}
                         className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md h-11 px-6 py-2 w-full sm:w-auto"
                     >
-                        Найти кандидатов
+                        Найти анкеты
                     </button>
                     <button
                         onClick={handleResetFilters}
@@ -160,7 +175,7 @@ export default function Dashboard() {
             {employees.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 sm:py-20 px-4 text-center border border-border/50 rounded-2xl bg-card shadow-sm">
                     <span className="text-5xl mb-4">🔍</span>
-                    <h3 className="text-xl font-semibold mb-2">Не найдено ни одного кандидата</h3>
+                    <h3 className="text-xl font-semibold mb-2">Не найдено ни одной анкеты</h3>
                     <p className="text-muted-foreground">Попробуйте изменить параметры поиска или загляните позже.</p>
                 </div>
             ) : (

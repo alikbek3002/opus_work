@@ -15,6 +15,19 @@ def _format_value(value, fallback: str = "Не указано") -> str:
     return str(value)
 
 
+def _derive_weekend_label(employee: dict) -> str:
+    ready = employee.get("ready_for_weekends")
+    if ready is not None:
+        return "Да" if ready else "Нет"
+
+    schedule = str(employee.get("schedule") or "").lower()
+    if "выход" in schedule:
+        return "Да"
+    if "будни" in schedule:
+        return "Нет"
+    return "Не указано"
+
+
 def _build_employee_message(employee: dict) -> str:
     full_name = escape(_format_value(employee.get("full_name")))
     specializations = escape(_format_value(employee.get("specializations")))
@@ -23,6 +36,9 @@ def _build_employee_message(employee: dict) -> str:
     gender = escape(_format_value(employee.get("gender")))
     experience = escape(_format_value(employee.get("experience")))
     employment_type = escape(_format_value(employee.get("employment_type")))
+    schedule = escape(_format_value(employee.get("schedule")))
+    weekend_label = _derive_weekend_label(employee)
+    sanitary_book = escape(_format_value(employee.get("has_sanitary_book")))
     phone_number = escape(_format_value(employee.get("phone_number"), "Не указан"))
     about_me = escape(_format_value(employee.get("about_me")))
     telegram_username = employee.get("telegram_username")
@@ -43,6 +59,9 @@ def _build_employee_message(employee: dict) -> str:
         f"Район: {district}\n"
         f"Опыт: {experience}\n"
         f"Занятость: {employment_type}\n"
+        f"График: {schedule}\n"
+        f"Выходные: {weekend_label}\n"
+        f"Сан. книжка: {sanitary_book}\n"
         f"WhatsApp: {has_whatsapp}\n"
         f"Telegram: {telegram_link}\n"
         f"Телефон: {phone_number}\n"

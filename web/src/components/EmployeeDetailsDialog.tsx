@@ -48,6 +48,26 @@ function displayYesNo(value?: boolean | null) {
     return value ? "Да" : "Нет";
 }
 
+function inferWeekendAvailability(
+    readyForWeekends?: boolean | null,
+    schedule?: string | null,
+) {
+    if (readyForWeekends !== null && readyForWeekends !== undefined) {
+        return readyForWeekends;
+    }
+    if (!schedule) {
+        return null;
+    }
+    const normalized = schedule.toLowerCase();
+    if (normalized.includes("выход")) {
+        return true;
+    }
+    if (normalized.includes("будни")) {
+        return false;
+    }
+    return null;
+}
+
 function buildWhatsAppUrl(phoneNumber?: string | null) {
     if (!phoneNumber) return null;
     const digits = phoneNumber.replace(/\D/g, "");
@@ -75,19 +95,20 @@ export default function EmployeeDetailsDialog({
         return null; // Handle photo status reset if dialog closes
     }
 
-    const _telegramIdFull = unlockedProfile?.telegram_id ?? null;
-    const photoTelegramId = unlockedProfile?.telegram_id ?? employee.telegram_id ?? null;
-    const telegramUsername = unlockedProfile?.telegram_username?.replace(/^@/, "") || null;
+    const resolvedProfile = unlockedProfile ?? employee;
+    const _telegramIdFull = resolvedProfile?.telegram_id ?? null;
+    const photoTelegramId = resolvedProfile?.telegram_id ?? employee.telegram_id ?? null;
+    const telegramUsername = resolvedProfile?.telegram_username?.replace(/^@/, "") || null;
     const telegramLink = telegramUsername
         ? `https://t.me/${telegramUsername}`
         : _telegramIdFull
             ? `tg://user?id=${_telegramIdFull}`
             : null;
-    const whatsappUrl = unlockedProfile?.has_whatsapp ? buildWhatsAppUrl(unlockedProfile.phone_number) : null;
+    const whatsappUrl = resolvedProfile?.has_whatsapp ? buildWhatsAppUrl(resolvedProfile.phone_number) : null;
     const verificationStatus = normalizeVerificationStatus(employee.verification_status, employee.is_verified);
-    const activityEmploymentType = unlockedProfile?.employment_type ?? employee.employment_type;
-    const activitySignal = unlockedProfile?.activity_signal ?? employee.activity_signal;
-    const activitySignalUpdatedAt = unlockedProfile?.activity_signal_updated_at ?? employee.activity_signal_updated_at;
+    const activityEmploymentType = resolvedProfile?.employment_type ?? employee.employment_type;
+    const activitySignal = resolvedProfile?.activity_signal ?? employee.activity_signal;
+    const activitySignalUpdatedAt = resolvedProfile?.activity_signal_updated_at ?? employee.activity_signal_updated_at;
     const cardsInfo = isViewed
         ? "Контакт уже был открыт раньше и повторно не списывается."
         : remainingCards === null
@@ -159,23 +180,27 @@ export default function EmployeeDetailsDialog({
                                 <dl className="divide-y divide-border/40">
                                     <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt className="text-sm font-medium text-muted-foreground">Пол</dt>
-                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(employee.gender)}</dd>
+                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(resolvedProfile.gender)}</dd>
                                     </div>
                                     <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt className="text-sm font-medium text-muted-foreground">Район</dt>
-                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(employee.district)}</dd>
+                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(resolvedProfile.district)}</dd>
+                                    </div>
+                                    <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
+                                        <dt className="text-sm font-medium text-muted-foreground">Специализации</dt>
+                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(resolvedProfile.specializations)}</dd>
                                     </div>
                                     <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt className="text-sm font-medium text-muted-foreground">Опыт работы</dt>
-                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(employee.experience)}</dd>
+                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(resolvedProfile.experience)}</dd>
                                     </div>
                                     <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt className="text-sm font-medium text-muted-foreground">Сан. книжка</dt>
-                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(unlockedProfile?.has_sanitary_book)}</dd>
+                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 font-medium">{displayValue(resolvedProfile.has_sanitary_book)}</dd>
                                     </div>
                                     <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt className="text-sm font-medium text-muted-foreground">О себе</dt>
-                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 whitespace-pre-wrap leading-relaxed">{displayValue(unlockedProfile?.about_me)}</dd>
+                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0 whitespace-pre-wrap leading-relaxed">{displayValue(resolvedProfile.about_me)}</dd>
                                     </div>
                                 </dl>
                             </section>
@@ -188,12 +213,16 @@ export default function EmployeeDetailsDialog({
                                         <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{displayValue(activityEmploymentType)}</dd>
                                     </div>
                                     <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
+                                        <dt className="text-sm font-medium text-muted-foreground">График</dt>
+                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{displayValue(resolvedProfile.schedule)}</dd>
+                                    </div>
+                                    <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt className="text-sm font-medium text-muted-foreground">Готовность к выходным</dt>
-                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{displayYesNo(unlockedProfile?.ready_for_weekends)}</dd>
+                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{displayYesNo(inferWeekendAvailability(resolvedProfile.ready_for_weekends, resolvedProfile.schedule))}</dd>
                                     </div>
                                     <div className="py-3 flex flex-col sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt className="text-sm font-medium text-muted-foreground">Рекомендации</dt>
-                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{displayYesNo(unlockedProfile?.has_recommendations)}</dd>
+                                        <dd className="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{displayYesNo(resolvedProfile?.has_recommendations)}</dd>
                                     </div>
                                 </dl>
                             </section>
@@ -208,9 +237,9 @@ export default function EmployeeDetailsDialog({
                                                 ? "Анкета не прошла проверку у модератора."
                                                 : "Анкета находится на этапе ручной проверки."}
                                     </p>
-                                    {unlockedProfile?.verification_rejected_reason ? (
+                                    {resolvedProfile?.verification_rejected_reason ? (
                                         <p className="text-xs text-destructive pt-1">
-                                            Причина: {unlockedProfile.verification_rejected_reason}
+                                            Причина: {resolvedProfile.verification_rejected_reason}
                                         </p>
                                     ) : null}
                                 </div>
@@ -226,7 +255,7 @@ export default function EmployeeDetailsDialog({
                                     </div>
                                     {unlockedProfile ? (
                                         <div className="space-y-3">
-                                            <p className="text-sm font-medium text-primary">Вы открыли контакт. Можно писать кандидату.</p>
+                                            <p className="text-sm font-medium text-primary">Вы открыли контакт. Можно писать сотруднику.</p>
                                             <div className="space-y-2 text-sm">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-muted-foreground w-20">Telegram:</span>
@@ -234,24 +263,24 @@ export default function EmployeeDetailsDialog({
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-muted-foreground w-20">Телефон:</span>
-                                                    <span className="font-semibold text-foreground">{displayValue(unlockedProfile?.phone_number)}</span>
+                                                    <span className="font-semibold text-foreground">{displayValue(resolvedProfile?.phone_number)}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-muted-foreground w-20">WhatsApp:</span>
-                                                    <span className="font-semibold text-foreground">{unlockedProfile?.has_whatsapp ? "Доступен" : "Отсутствует"}</span>
+                                                    <span className="font-semibold text-foreground">{resolvedProfile?.has_whatsapp ? "Доступен" : "Отсутствует"}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="space-y-2 text-sm text-muted-foreground">
-                                            <p>Часть данных анкеты закрыта. Для связи необходимо открыть контакт кандидата.</p>
+                                            <p>Часть данных анкеты закрыта. Для связи необходимо открыть контакт сотрудника.</p>
                                             <p className="font-medium text-primary bg-primary/10 inline-block px-3 py-1 rounded-md">{cardsInfo}</p>
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="shrink-0 w-full sm:w-auto">
-                                    {telegramLink || unlockedProfile?.phone_number ? (
+                                    {telegramLink || resolvedProfile?.phone_number ? (
                                         <div className="flex flex-col gap-3 min-w-0 sm:min-w-[220px]">
                                             {telegramLink ? (
                                                 <Button asChild className="w-full h-11 rounded-xl shadow-sm text-sm" variant="default">
@@ -268,11 +297,11 @@ export default function EmployeeDetailsDialog({
                                                         Написать в WhatsApp
                                                     </a>
                                                 </Button>
-                                            ) : unlockedProfile?.phone_number ? (
+                                            ) : resolvedProfile?.phone_number ? (
                                                 <div className="rounded-xl border border-border/50 bg-card px-4 py-3 shadow-sm text-center">
                                                     <div className="flex items-center justify-center gap-2 font-bold text-base">
                                                         <Phone className="h-4 w-4 text-primary" />
-                                                        {unlockedProfile.phone_number}
+                                                        {resolvedProfile.phone_number}
                                                     </div>
                                                     <p className="mt-1 text-xs text-muted-foreground">WhatsApp отсутствует</p>
                                                 </div>
@@ -281,7 +310,7 @@ export default function EmployeeDetailsDialog({
                                     ) : (
                                         <Button
                                             onClick={handlePrimaryAction}
-                                            className="w-full sm:min-w-[220px] h-12 text-sm font-bold rounded-xl shadow-md bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.98]"
+                                            className="w-full sm:min-w-[220px] h-12 text-sm font-bold rounded-xl shadow-md bg-blue-600 text-white hover:bg-blue-700 transition-all active:scale-[0.98]"
                                             disabled={isUnlocking}
                                         >
                                             {isUnlocking ? "Открываем..." : isViewed ? "Открыть контакт" : "Открыть контакт"}

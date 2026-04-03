@@ -289,7 +289,7 @@ async def payment_callback(
             raise HTTPException(status_code=502, detail="Тариф платежа не найден")
 
         period_days = {
-            "day": 1,
+            "day": 3,
             "week": 7,
             "month": 30,
             "quarter": 90,
@@ -318,7 +318,10 @@ async def payment_callback(
             bot_token = settings.BOT_TOKEN
             employer_id = payment_data["employer_id"]
             telegram_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-            message_text = "🎉 Вы успешно приобрели тариф и подписка активирована!\n\n🔥 Успейте купить еще в следующий раз — осталось всего 28 тарифов по скидке для первых зарегистрированных пользователей!"
+            message_text = (
+                "🎉 Вы успешно приобрели тариф и подписка активирована!\n\n"
+                "🔥 Ранний доступ: скидка действует для первых 50 заказчиков и сохраняется при продлении."
+            )
             requests.post(telegram_url, json={"chat_id": employer_id, "text": message_text}, timeout=5)
         except Exception as e:
             logger.error("Failed to send telegram notification: %s", e)

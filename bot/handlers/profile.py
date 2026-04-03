@@ -44,6 +44,19 @@ def format_photo_status(photo_file_id: str | None) -> str:
     return "Загружено ✅" if photo_file_id else "Не загружено"
 
 
+def derive_weekend_from_schedule(schedule: str | None, ready_for_weekends: bool | None) -> bool | None:
+    if ready_for_weekends is not None:
+        return ready_for_weekends
+    if not schedule:
+        return None
+    normalized = schedule.lower()
+    if "выход" in normalized:
+        return True
+    if "будни" in normalized:
+        return False
+    return None
+
+
 def get_verification_status_text(employee: dict) -> tuple[str, str]:
     status = employee.get("verification_status")
     if status == "verified" or employee.get("is_verified"):
@@ -76,7 +89,9 @@ async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         f"Профессия: {escape(str(employee.get('specializations', 'Не указано')))}\n"
         f"Где работал(а): {escape(str(employee.get('experience', 'Не указано')))}\n"
         f"Занятость: {escape(str(employee.get('employment_type', 'Не указано')))}\n"
-        f"Готов(а) к выходным: {escape(format_yes_no(employee.get('ready_for_weekends')))}\n"
+        f"График: {escape(str(employee.get('schedule', 'Не указано')))}\n"
+        f"Готов(а) к выходным: {escape(format_yes_no(derive_weekend_from_schedule(employee.get('schedule'), employee.get('ready_for_weekends'))))}\n"
+        f"Сан. книжка: {escape(str(employee.get('has_sanitary_book', 'Не указано')))}\n"
         f"О себе: {escape(str(employee.get('about_me', 'Не указано')))}\n"
         f"Есть рекомендации: {escape(format_yes_no(employee.get('has_recommendations')))}\n"
         f"Telegram username: {escape(format_telegram_username(employee.get('telegram_username')))}\n"

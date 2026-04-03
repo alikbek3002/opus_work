@@ -23,6 +23,23 @@ def format_yes_no(value: bool | None) -> str:
     return "Да" if value else "Нет"
 
 
+def derive_weekend_from_schedule(employee: dict) -> bool | None:
+    ready_for_weekends = employee.get("ready_for_weekends")
+    if ready_for_weekends is not None:
+        return ready_for_weekends
+
+    schedule = employee.get("schedule")
+    if not schedule:
+        return None
+
+    normalized = str(schedule).lower()
+    if "выход" in normalized:
+        return True
+    if "будни" in normalized:
+        return False
+    return None
+
+
 def status_meta(employee: dict) -> tuple[str, str]:
     status = employee.get("verification_status")
     if status == "verified" or employee.get("is_verified"):
@@ -79,7 +96,9 @@ def build_employee_message(employee: dict) -> str:
         f"Район: {escape(format_value(employee.get('district')))}\n"
         f"Опыт: {escape(format_value(employee.get('experience')))}\n"
         f"Занятость: {escape(format_value(employee.get('employment_type')))}\n"
-        f"Выходные: {escape(format_yes_no(employee.get('ready_for_weekends')))}\n"
+        f"График: {escape(format_value(employee.get('schedule')))}\n"
+        f"Выходные: {escape(format_yes_no(derive_weekend_from_schedule(employee)))}\n"
+        f"Сан. книжка: {escape(format_value(employee.get('has_sanitary_book')))}\n"
         f"Рекомендации: {escape(format_yes_no(employee.get('has_recommendations')))}\n"
         f"WhatsApp: {escape(format_yes_no(employee.get('has_whatsapp')))}\n"
         f"Telegram: {telegram_display}\n"

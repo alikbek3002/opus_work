@@ -164,6 +164,16 @@ export interface EmployeeCard {
     specializations: string | null;
     experience: string | null;
     employment_type: string | null;
+    schedule?: string | null;
+    ready_for_weekends?: boolean | null;
+    has_sanitary_book?: string | null;
+    about_me?: string | null;
+    has_recommendations?: boolean | null;
+    telegram_username?: string | null;
+    phone_number?: string | null;
+    has_whatsapp?: boolean | null;
+    verification_rejected_reason?: string | null;
+    verified_by_telegram_id?: number | null;
     opus_experience: string | null;
     is_verified: boolean;
     verification_status: VerificationStatus;
@@ -202,6 +212,7 @@ export interface TariffPlan {
     name: string;
     period: string;
     card_limit: number;
+    daily_limit?: number | null;
     price: number;
     description: string | null;
 }

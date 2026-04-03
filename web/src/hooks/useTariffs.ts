@@ -8,13 +8,15 @@ import { queryKeys } from '../lib/query';
 
 /**
  * Загрузка тарифных планов.
- * Тарифы меняются редко — кэш на 10 минут.
+ * Тарифы обновляются оперативно для промо-акций.
  */
 export function useTariffs() {
     return useQuery({
         queryKey: queryKeys.tariffs.list(),
         queryFn: () => api.getTariffs(),
-        staleTime: 10 * 60 * 1000, // 10 минут
+        staleTime: 30 * 1000,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
     });
 }
 

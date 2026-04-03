@@ -7,7 +7,7 @@ from middleware.auth import get_current_user
 from models.schemas import EmployeeCard, EmployeeFullProfile, ViewedEmployeeHistoryItem
 from services.subscription_limits import get_daily_limit, get_daily_views_used
 
-router = APIRouter(prefix="/api/employees", tags=["Кандидаты"])
+router = APIRouter(prefix="/api/employees", tags=["Анкеты"])
 
 
 def normalize_filter_values(values: Optional[List[str]]) -> List[str]:
@@ -15,6 +15,17 @@ def normalize_filter_values(values: Optional[List[str]]) -> List[str]:
     if not values:
         return []
     return [value.strip() for value in values if value and value.strip()]
+
+
+def matches_filter(field_value: Optional[str], filters: List[str]) -> bool:
+    """Проверяет, содержит ли строковое поле любой из фильтров."""
+    if not filters:
+        return True
+    if not field_value:
+        return False
+
+    normalized_value = field_value.lower()
+    return any(value.lower() in normalized_value for value in filters)
 
 
 @router.get("", response_model=List[EmployeeCard])
@@ -31,28 +42,31 @@ async def get_employees(
     """
     offset = (page - 1) * limit
 
-    query = supabase.table("employees").select(
-        "id, full_name, gender, age, district, specializations, experience, employment_type, opus_experience, is_verified, verification_status, verification_decided_at, activity_signal, activity_signal_updated_at, contact_opens_count, telegram_id"
-    )
-
     district_values = normalize_filter_values(district)
     specialization_values = normalize_filter_values(specialization)
 
-    if district_values:
-        query = query.in_("district", district_values)
-    if specialization_values:
-        query = query.in_("specializations", specialization_values)
-
-    # Сортировка: верифицированные первыми, потом по дате
+    # NOTE:
+    # Районы и специализации хранятся как строка (в т.ч. перечисления через запятую),
+    # поэтому фильтруем по вхождению подстроки в Python, чтобы корректно работал множественный выбор.
     response = (
-        query
+        supabase.table("employees")
+        .select(
+            "id, full_name, gender, age, district, specializations, experience, employment_type, schedule, opus_experience, is_verified, verification_status, verification_decided_at, activity_signal, activity_signal_updated_at, contact_opens_count, telegram_id"
+        )
         .order("is_verified", desc=True)
         .order("created_at", desc=True)
-        .range(offset, offset + limit - 1)
         .execute()
     )
+    rows = response.data or []
 
-    return response.data
+    filtered = [
+        row
+        for row in rows
+        if matches_filter(row.get("district"), district_values)
+        and matches_filter(row.get("specializations"), specialization_values)
+    ]
+
+    return filtered[offset:offset + limit]
 
 
 @router.get("/count")
@@ -61,18 +75,19 @@ async def get_employees_count(
     specialization: Optional[List[str]] = Query(None),
 ):
     """Общее количество сотрудников (для пагинации на фронте). (Публичный доступ)"""
-    query = supabase.table("employees").select("id", count="exact")
-
     district_values = normalize_filter_values(district)
     specialization_values = normalize_filter_values(specialization)
 
-    if district_values:
-        query = query.in_("district", district_values)
-    if specialization_values:
-        query = query.in_("specializations", specialization_values)
+    response = supabase.table("employees").select("id, district, specializations").execute()
+    rows = response.data or []
 
-    response = query.execute()
-    return {"count": response.count or 0}
+    filtered = [
+        row
+        for row in rows
+        if matches_filter(row.get("district"), district_values)
+        and matches_filter(row.get("specializations"), specialization_values)
+    ]
+    return {"count": len(filtered)}
 
 
 @router.get("/history", response_model=List[ViewedEmployeeHistoryItem])
@@ -148,7 +163,7 @@ async def view_employee(
     if not employee:
         raise HTTPException(
             status_code=404,
-            detail="Кандидат не найден или анкета была обновлена. Обновите список кандидатов."
+            detail="Сотрудник не найден или анкета была обновлена. Обновите список анкет."
         )
 
     if existing_view.data:
@@ -176,7 +191,12 @@ async def view_employee(
         )
 
     sub = subscription.data[0]
-    daily_limit = get_daily_limit((sub.get("tariff_plans") or {}).get("period"))
+    stored_daily_limit = sub.get("daily_limit")
+    daily_limit = (
+        int(stored_daily_limit)
+        if isinstance(stored_daily_limit, int)
+        else get_daily_limit((sub.get("tariff_plans") or {}).get("period"))
+    )
 
     if daily_limit is not None:
         daily_views_used = get_daily_views_used(

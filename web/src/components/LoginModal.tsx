@@ -53,7 +53,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                         <DialogDescription className="sm:text-center">
                             {isLoginView
                                 ? "Введите свои данные для входа в платформу"
-                                : "Зарегистрируйтесь, чтобы просматривать карточки кандидатов"}
+                                : "Зарегистрируйтесь, чтобы просматривать анкеты сотрудников"}
                         </DialogDescription>
                     </DialogHeader>
                 </div>

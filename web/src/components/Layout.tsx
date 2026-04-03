@@ -8,12 +8,13 @@ import SettingsModal from './SettingsModal';
 import { InfiniteSlider } from './ui/infinite-slider';
 
 const tariffAnnouncements = [
-    'Тариф 1 день: 3 контакта — 490 сом',
-    'Тариф Неделя: 25 контактов, до 15 в день — 1900 сом',
-    'Тариф Месяц: 80 контактов, до 20 в день — 4900 сом',
-    'Тариф Квартальный: 180 контактов, до 15 в день — 11 900 вместо 19 900',
+    'РАННИЙ ДОСТУП: СКИДКА ДЛЯ ПЕРВЫХ 50 ЗАКАЗЧИКОВ',
+    'Пробный: 3 контакта',
+    'Неделя: 25 контактов, до 8 в день — скидка 34%',
+    'Месяц: 65 контактов, до 15 в день — скидка 45%',
+    'Квартальный: 180 контактов, до 22 в день — скидка 40%',
     'Оплата проходит через Finik, ссылка формируется автоматически',
-    'Продлите доступ заранее, чтобы не терять контакты кандидатов',
+    'Скидка раннего доступа сохраняется при продлении',
     'Нажмите на ленту, чтобы перейти к оплате тарифов',
 ];
 
@@ -74,7 +75,7 @@ export default function Layout() {
                         <div className="flex h-10 sm:h-16 items-center justify-center shrink-0">
                             <img src="/logo.png" alt="Opus" className="h-full w-auto object-contain" />
                         </div>
-                        <span className="text-xl sm:text-2xl font-bold tracking-tight inline-block text-primary rubik-mono-one-regular ml-1">Жумуш</span>
+                        <span className="text-xl sm:text-2xl font-bold tracking-tight inline-block text-primary rubik-mono-one-regular ml-1">Анкеты</span>
                     </Link>
 
                     <nav className="flex items-center gap-3 sm:gap-6">
@@ -84,7 +85,7 @@ export default function Layout() {
                                 }`}
                         >
                             <Users strokeWidth={2.5} className="w-4 h-4" />
-                            <span className="hidden sm:inline-block">Кандидаты</span>
+                            <span className="hidden sm:inline-block">Анкеты</span>
                         </Link>
                         <Link
                             to="/tariffs"
