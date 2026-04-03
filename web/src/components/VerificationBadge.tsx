@@ -50,6 +50,9 @@ export default function VerificationBadge({
     className,
 }: VerificationBadgeProps) {
     const normalizedStatus = normalizeVerificationStatus(status, isVerified);
+    if (normalizedStatus !== "verified") {
+        return null;
+    }
     const meta = statusMeta[normalizedStatus];
     const Icon = meta.icon;
 

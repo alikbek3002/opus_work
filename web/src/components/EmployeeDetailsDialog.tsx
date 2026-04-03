@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { getPhotoUrl, type EmployeeCard, type EmployeeFullProfile } from "@/lib/api";
 import EmployeeActivityBadge from "@/components/EmployeeActivityBadge";
-import VerificationBadge, { normalizeVerificationStatus } from "@/components/VerificationBadge";
+import VerificationBadge from "@/components/VerificationBadge";
 
 interface EmployeeDetailsDialogProps {
     open: boolean;
@@ -114,7 +114,6 @@ export default function EmployeeDetailsDialog({
             ? `tg://user?id=${contactTelegramId}`
             : null;
     const whatsappUrl = unlockedProfile?.has_whatsapp ? buildWhatsAppUrl(unlockedProfile.phone_number) : null;
-    const verificationStatus = normalizeVerificationStatus(employee.verification_status, employee.is_verified);
     const activityEmploymentType = resolvedProfile?.employment_type ?? employee.employment_type;
     const activitySignal = resolvedProfile?.activity_signal ?? employee.activity_signal;
     const activitySignalUpdatedAt = resolvedProfile?.activity_signal_updated_at ?? employee.activity_signal_updated_at;
@@ -235,23 +234,14 @@ export default function EmployeeDetailsDialog({
                                 </dl>
                             </section>
 
-                            <section className="rounded-xl border border-border/40 bg-muted/10 p-5 mt-4">
-                                <h4 className="text-sm font-semibold text-foreground mb-2">Статус в базе</h4>
-                                <div className="text-sm text-muted-foreground space-y-1">
-                                    <p>
-                                        {verificationStatus === "verified"
-                                            ? "Анкета полностью проверена и подтверждена нашими модераторами."
-                                            : verificationStatus === "rejected"
-                                                ? "Анкета не прошла проверку у модератора."
-                                                : "Анкета находится на этапе ручной проверки."}
-                                    </p>
-                                    {resolvedProfile?.verification_rejected_reason ? (
-                                        <p className="text-xs text-destructive pt-1">
-                                            Причина: {resolvedProfile.verification_rejected_reason}
-                                        </p>
-                                    ) : null}
-                                </div>
-                            </section>
+                            {employee.is_verified ? (
+                                <section className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 mt-4">
+                                    <h4 className="text-sm font-semibold text-foreground mb-2">Верификация</h4>
+                                    <div className="text-sm text-muted-foreground">
+                                        Анкета подтверждена модератором.
+                                    </div>
+                                </section>
+                            ) : null}
                         </div>
 
                         <div className="mt-8 rounded-xl border border-primary/20 bg-primary/5 p-6 sm:p-8">
