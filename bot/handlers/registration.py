@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, timezone
 from html import escape
 import logging
 
@@ -20,6 +21,7 @@ from telegram.ext import (
     filters,
 )
 
+from activity_signal import get_activity_prompt_meta, get_activity_signal_meta, parse_activity_signal_choice
 from database import get_bot_user_settings, get_employee_by_telegram_id, save_employee
 from i18n import (
     get_display_options,
@@ -42,13 +44,14 @@ from i18n import (
     DISTRICT,
     DISTRICT_CUSTOM,
     EMPLOYMENT_TYPE,
+    ACTIVITY_SIGNAL,
     WEEKEND_WORK,
     SANITARY_BOOK,
     ABOUT_ME,
     CONTACT_METHOD,
     PHONE_NUMBER,
     CONFIRM,
-) = range(15)
+) = range(16)
 
 CONTACT_METHOD_OPTIONS = ["WhatsApp", "Обычный номер"]
 GENDER_OPTIONS = ["Мужчина", "Женщина"]
@@ -112,6 +115,7 @@ FIELD_LABELS = {
     "experience": "Опыт работы",
     "district": "Районы",
     "employment_type": "Формат работы",
+    "activity_signal": "Активность",
     "schedule": "График работы",
     "has_sanitary_book": "Санитарная книжка",
     "about_me": "О себе",
@@ -262,10 +266,11 @@ def build_edit_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton("🕒 Занятость", callback_data="edit_field:employment_type"),
         ],
         [
+            InlineKeyboardButton("📈 Активность", callback_data="edit_field:activity_signal"),
             InlineKeyboardButton("📅 График", callback_data="edit_field:schedule"),
-            InlineKeyboardButton("🩺 Сан. книжка", callback_data="edit_field:has_sanitary_book"),
         ],
         [
+            InlineKeyboardButton("🩺 Сан. книжка", callback_data="edit_field:has_sanitary_book"),
             InlineKeyboardButton("📝 О себе", callback_data="edit_field:about_me"),
         ],
         [
@@ -314,6 +319,30 @@ def normalize_phone_number(text: str) -> str | None:
     return digits
 
 
+def build_activity_signal_reply_keyboard(employment_type: str | None, language: str) -> ReplyKeyboardMarkup | None:
+    prompt_meta = get_activity_prompt_meta(employment_type, language)
+    if not prompt_meta:
+        return None
+    option_labels = [str(option_label) for _, option_label in prompt_meta["options"]]
+    return build_reply_keyboard(option_labels, columns=1, language=language)
+
+
+def build_activity_signal_prompt_text(employment_type: str | None, language: str, *, step_number: int = 9, total_steps: int = 13) -> str | None:
+    prompt_meta = get_activity_prompt_meta(employment_type, language)
+    if not prompt_meta:
+        return None
+    if language == "ky":
+        return f"{step_number}/{total_steps}-кадам: {prompt_meta['question']}"
+    return f"Шаг {step_number}/{total_steps}: {prompt_meta['question']}"
+
+
+def get_activity_signal_summary_label(data: dict, language: str) -> str:
+    meta = get_activity_signal_meta(data.get("employment_type"), data.get("activity_signal"), language)
+    if meta:
+        return meta["label"]
+    return "Не указано" if language == "ru" else "Көрсөтүлгөн эмес"
+
+
 def build_summary(data: dict, language: str) -> str:
     """Собирает текстовое резюме анкеты."""
     return (
@@ -326,6 +355,7 @@ def build_summary(data: dict, language: str) -> str:
         f"💼 Опыт работы: {escape(localize_choice(language, 'experience', data.get('experience')) or str(data.get('experience', 'Не указано')))}\n"
         f"📍 Районы: {escape(str(data.get('district', 'Не указано')))}\n"
         f"🕒 Формат работы: {escape(localize_csv_choices(language, 'employment_type', data.get('employment_type')) or str(data.get('employment_type', 'Не указано')))}\n"
+        f"📈 Активность: {escape(get_activity_signal_summary_label(data, language))}\n"
         f"📅 График работы: {escape(localize_choice(language, 'schedule', data.get('schedule')) or str(data.get('schedule', 'Не указано')))}\n"
         f"🩺 Сан. книжка: {escape(localize_choice(language, 'sanitary_book', data.get('has_sanitary_book')) or str(data.get('has_sanitary_book', 'Не указано')))}\n"
         f"📝 О себе: {escape(str(data.get('about_me', 'Не указано')))}\n"
@@ -393,7 +423,7 @@ async def start_registration(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.message.reply_text(
         f"📝 *{tr(language, 'registration_title')}*\n\n"
         f"{tr(language, 'registration_intro')}\n\n"
-        f"{'Шаг 1/12: Как вас зовут?' if language == 'ru' else '1/12-кадам: Атыңыз ким?'}",
+        f"{'Шаг 1/13: Как вас зовут?' if language == 'ru' else '1/13-кадам: Атыңыз ким?'}",
         parse_mode="Markdown",
         reply_markup=ReplyKeyboardRemove(),
     )
@@ -417,7 +447,7 @@ async def full_name_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 2/12: Сколько вам лет? Введите число:" if language == "ru" else "2/12-кадам: Жашыңыз канчада? Сан жазыңыз:",
+        "Шаг 2/13: Сколько вам лет? Введите число:" if language == "ru" else "2/13-кадам: Жашыңыз канчада? Сан жазыңыз:",
         reply_markup=ReplyKeyboardRemove(),
     )
     return AGE
@@ -444,7 +474,7 @@ async def age_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 3/12: Выберите ваш пол:" if language == "ru" else "3/12-кадам: Жынысыңызды тандаңыз:",
+        "Шаг 3/13: Выберите ваш пол:" if language == "ru" else "3/13-кадам: Жынысыңызды тандаңыз:",
         reply_markup=build_reply_keyboard(GENDER_OPTIONS, language=language, category="gender"),
     )
     return GENDER
@@ -470,7 +500,7 @@ async def gender_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return CONFIRM
 
     await update.message.reply_text(
-        ("Шаг 4/12: " if language == "ru" else "4/12-кадам: ") + tr(language, "photo_skip_prompt"),
+        ("Шаг 4/13: " if language == "ru" else "4/13-кадам: ") + tr(language, "photo_skip_prompt"),
         reply_markup=ReplyKeyboardMarkup([[tr(language, "skip")]], resize_keyboard=True, one_time_keyboard=True),
     )
     return PHOTO
@@ -500,7 +530,7 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     from telegram import ReplyKeyboardRemove
     await update.message.reply_text("Отлично! 📸" if language == "ru" else "Жакшы! 📸", reply_markup=ReplyKeyboardRemove())
     await update.message.reply_text(
-        "Шаг 5/12: Кем хотите работать? Можно выбрать несколько вариантов:" if language == "ru" else "5/12-кадам: Кайсы кызматта иштегиңиз келет? Бир нече вариант тандасаңыз болот:",
+        "Шаг 5/13: Кем хотите работать? Можно выбрать несколько вариантов:" if language == "ru" else "5/13-кадам: Кайсы кызматта иштегиңиз келет? Бир нече вариант тандасаңыз болот:",
         reply_markup=build_multiselect_inline_keyboard(SPECIALIZATION_OPTIONS, set(), "spec", language=language),
     )
     return SPECIALIZATIONS
@@ -558,7 +588,7 @@ async def specializations_done_handler(update: Update, context: ContextTypes.DEF
     )
     
     await query.message.reply_text(
-        "Шаг 6/12: Какой у вас опыт работы? Выберите подходящий вариант:" if language == "ru" else "6/12-кадам: Иш тажрыйбаңыз кандай? Ылайыктуусун тандаңыз:",
+        "Шаг 6/13: Какой у вас опыт работы? Выберите подходящий вариант:" if language == "ru" else "6/13-кадам: Иш тажрыйбаңыз кандай? Ылайыктуусун тандаңыз:",
         reply_markup=build_reply_keyboard(EXPERIENCE_OPTIONS, language=language, category="experience"),
     )
     return EXPERIENCE
@@ -586,7 +616,7 @@ async def experience_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     from telegram import ReplyKeyboardRemove
     await update.message.reply_text("Принято.", reply_markup=ReplyKeyboardRemove())
     await update.message.reply_text(
-        "Шаг 7/12: В каких районах готовы работать? Можно выбрать несколько или добавить свой район:" if language == "ru" else "7/12-кадам: Кайсы райондордо иштөөгө даярсыз? Бир нече вариантты тандап же өз районуңузду кошо аласыз:",
+        "Шаг 7/13: В каких районах готовы работать? Можно выбрать несколько или добавить свой район:" if language == "ru" else "7/13-кадам: Кайсы райондордо иштөөгө даярсыз? Бир нече вариантты тандап же өз районуңузду кошо аласыз:",
         reply_markup=build_multiselect_inline_keyboard(DISTRICT_OPTIONS, set(), "dist", add_custom_button=True, language=language),
     )
     return DISTRICT
@@ -694,7 +724,7 @@ async def district_done_handler(update: Update, context: ContextTypes.DEFAULT_TY
 
 
     await query.message.reply_text(
-        "Шаг 8/12: Выберите формат работы (можно несколько):" if language == "ru" else "8/12-кадам: Иш форматын тандаңыз (бир нече вариант болот):",
+        "Шаг 8/13: Выберите формат работы (можно несколько):" if language == "ru" else "8/13-кадам: Иш форматын тандаңыз (бир нече вариант болот):",
         reply_markup=build_multiselect_inline_keyboard(EMPLOYMENT_TYPE_OPTIONS, set(), "emp", language=language, category="employment_type"),
     )
     return EMPLOYMENT_TYPE
@@ -734,9 +764,18 @@ async def employment_type_done_handler(update: Update, context: ContextTypes.DEF
     context.user_data.pop("employment_type_set", None)
 
     if context.user_data.get("edit_field") == "employment_type":
-        context.user_data.pop("edit_field", None)
-        await show_confirmation(update, context, edit_message=True)
-        return CONFIRM
+        context.user_data["edit_field"] = "activity_signal"
+        await query.edit_message_text(
+            f"Формат работы: {localize_csv_choices(language, 'employment_type', context.user_data['employment_type'])}"
+            if language == "ru"
+            else f"Иш форматы: {localize_csv_choices(language, 'employment_type', context.user_data['employment_type'])}"
+        )
+        await query.message.reply_text(
+            build_activity_signal_prompt_text(context.user_data.get("employment_type"), language, step_number=1, total_steps=1)
+            or ("Выберите текущую активность:" if language == "ru" else "Учурдагы активдүүлүктү тандаңыз:"),
+            reply_markup=build_activity_signal_reply_keyboard(context.user_data.get("employment_type"), language),
+        )
+        return ACTIVITY_SIGNAL
 
     await query.edit_message_text(
         f"Формат работы: {localize_csv_choices(language, 'employment_type', context.user_data['employment_type'])}"
@@ -745,7 +784,35 @@ async def employment_type_done_handler(update: Update, context: ContextTypes.DEF
     )
 
     await query.message.reply_text(
-        "Шаг 9/12: Выберите график работы:" if language == "ru" else "9/12-кадам: Иш графигин тандаңыз:",
+        build_activity_signal_prompt_text(context.user_data.get("employment_type"), language) or (
+            "Шаг 9/13: Насколько активно вы сейчас ищете работу?" if language == "ru" else "9/13-кадам: Азыр жумушту канчалык активдүү издеп жатасыз?"
+        ),
+        reply_markup=build_activity_signal_reply_keyboard(context.user_data.get("employment_type"), language),
+    )
+    return ACTIVITY_SIGNAL
+
+
+async def activity_signal_registration_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    language = get_current_language(update, context)
+    employment_type = context.user_data.get("employment_type")
+    signal = parse_activity_signal_choice(employment_type, update.message.text.strip(), language)
+
+    if signal not in {"high", "medium", "low"}:
+        await update.message.reply_text(
+            "⚠️ Выберите один из вариантов кнопкой ниже:" if language == "ru" else "⚠️ Төмөнкү баскычтардан бир вариант тандаңыз:",
+            reply_markup=build_activity_signal_reply_keyboard(employment_type, language),
+        )
+        return ACTIVITY_SIGNAL
+
+    context.user_data["activity_signal"] = signal
+
+    if context.user_data.get("edit_field") == "activity_signal":
+        context.user_data.pop("edit_field", None)
+        await show_confirmation(update, context)
+        return CONFIRM
+
+    await update.message.reply_text(
+        "Шаг 10/13: Выберите график работы:" if language == "ru" else "10/13-кадам: Иш графигин тандаңыз:",
         reply_markup=build_reply_keyboard(SCHEDULE_OPTIONS, language=language, category="schedule"),
     )
     return WEEKEND_WORK
@@ -771,7 +838,7 @@ async def schedule_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 10/12: Санитарная книжка?" if language == "ru" else "10/12-кадам: Санитардык китепче барбы?",
+        "Шаг 11/13: Санитарная книжка?" if language == "ru" else "11/13-кадам: Санитардык китепче барбы?",
         reply_markup=build_reply_keyboard(SANITARY_BOOK_OPTIONS, language=language, category="sanitary_book"),
     )
     return SANITARY_BOOK
@@ -820,7 +887,7 @@ async def about_me_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return CONFIRM
 
     await update.message.reply_text(
-        "Шаг 12/12: Выберите способ связи по номеру:" if language == "ru" else "12/12-кадам: Номер аркылуу байланыш түрүн тандаңыз:",
+        "Шаг 13/13: Выберите способ связи по номеру:" if language == "ru" else "13/13-кадам: Номер аркылуу байланыш түрүн тандаңыз:",
         reply_markup=build_reply_keyboard(CONTACT_METHOD_OPTIONS, language=language, category="contact_method"),
     )
     return CONTACT_METHOD
@@ -849,11 +916,11 @@ async def contact_method_handler(update: Update, context: ContextTypes.DEFAULT_T
 
     await update.message.reply_text(
         (
-            "Шаг 12/12 (последний): Введите номер "
+            "Шаг 13/13 (последний): Введите номер "
             f"{'для WhatsApp' if context.user_data['has_whatsapp'] else 'телефона'} "
             "в международном формате, например: +996700123456"
         ) if language == "ru" else (
-            "12/12-кадам (акыркы): "
+            "13/13-кадам (акыркы): "
             f"{'WhatsApp үчүн' if context.user_data['has_whatsapp'] else 'телефон'} "
             "номерди эл аралык форматта жазыңыз, мисалы: +996700123456"
         ),
@@ -966,6 +1033,14 @@ async def edit_field(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         )
         return EMPLOYMENT_TYPE
 
+    if field == "activity_signal":
+        await query.message.reply_text(
+            build_activity_signal_prompt_text(context.user_data.get("employment_type"), language, step_number=1, total_steps=1)
+            or ("Выберите текущую активность:" if language == "ru" else "Учурдагы активдүүлүктү тандаңыз:"),
+            reply_markup=build_activity_signal_reply_keyboard(context.user_data.get("employment_type"), language),
+        )
+        return ACTIVITY_SIGNAL
+
     if field == "schedule":
         await query.message.reply_text(
             "Выберите новый график работы:",
@@ -1019,6 +1094,7 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
     context.user_data["telegram_username"] = query.from_user.username
 
     data = context.user_data
+    now_iso = datetime.now(timezone.utc).isoformat()
     employee_data = {
         "telegram_id": query.from_user.id,
         "telegram_username": data.get("telegram_username"),
@@ -1030,6 +1106,9 @@ async def confirm_registration(update: Update, context: ContextTypes.DEFAULT_TYP
         "experience": data.get("experience"),
         "district": data.get("district"),
         "employment_type": data.get("employment_type"),
+        "activity_signal": data.get("activity_signal"),
+        "activity_signal_updated_at": now_iso if data.get("activity_signal") else None,
+        "activity_signal_prompted_at": now_iso if data.get("activity_signal") else None,
         "schedule": data.get("schedule"),
         "ready_for_weekends": derive_ready_for_weekends(data.get("schedule")),
         "has_sanitary_book": data.get("has_sanitary_book"),
@@ -1152,6 +1231,7 @@ def get_registration_handler() -> ConversationHandler:
                 CallbackQueryHandler(employment_type_toggle_handler, pattern="^emp_toggle:"),
                 CallbackQueryHandler(employment_type_done_handler, pattern="^emp_done$"),
             ],
+            ACTIVITY_SIGNAL: [MessageHandler(filters.TEXT & ~filters.COMMAND, activity_signal_registration_handler)],
             WEEKEND_WORK: [MessageHandler(filters.TEXT & ~filters.COMMAND, schedule_handler)],
             SANITARY_BOOK: [MessageHandler(filters.TEXT & ~filters.COMMAND, sanitary_book_handler)],
             ABOUT_ME: [MessageHandler(filters.TEXT & ~filters.COMMAND, about_me_handler)],

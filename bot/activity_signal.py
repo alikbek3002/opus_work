@@ -135,6 +135,30 @@ def get_activity_signal_meta(employment_type: str | None, signal: str | None, la
     }
 
 
+def get_activity_prompt_meta(employment_type: str | None, language: str = "ru") -> dict[str, object] | None:
+    resolved_employment_type = resolve_activity_employment_type(employment_type)
+    employment_meta = get_activity_bundle(language).get(resolved_employment_type or "")
+    if not employment_meta:
+        return None
+    return {
+        "title": str(employment_meta["title"]),
+        "question": str(employment_meta["question"]),
+        "options": list(employment_meta["options"]),
+    }
+
+
+def parse_activity_signal_choice(employment_type: str | None, display_value: str, language: str = "ru") -> str | None:
+    employment_meta = get_activity_prompt_meta(employment_type, language)
+    if not employment_meta:
+        return None
+
+    normalized_display = display_value.strip()
+    for option_value, option_label in employment_meta["options"]:
+        if normalized_display == str(option_label):
+            return str(option_value)
+    return None
+
+
 def get_activity_placeholder(employment_type: str | None, language: str = "ru") -> dict[str, str] | None:
     resolved_employment_type = resolve_activity_employment_type(employment_type)
     employment_meta = get_activity_bundle(language).get(resolved_employment_type or "")
