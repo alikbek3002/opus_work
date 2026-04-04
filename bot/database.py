@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from supabase import create_client, Client
 from config import settings
-from activity_signal import FULL_TIME_EMPLOYMENT, PART_TIME_EMPLOYMENT, is_activity_prompt_due
+from activity_signal import is_activity_prompt_due, resolve_activity_employment_type
 
 supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
@@ -78,12 +78,10 @@ def list_employees_due_for_activity_prompt() -> list[dict]:
 
     employees = response.data or []
     due_employees: list[dict] = []
-    allowed_employment_types = {PART_TIME_EMPLOYMENT, FULL_TIME_EMPLOYMENT}
-
     for employee in employees:
         if not employee.get("telegram_id"):
             continue
-        if employee.get("employment_type") not in allowed_employment_types:
+        if not resolve_activity_employment_type(employee.get("employment_type")):
             continue
         if not is_activity_prompt_due(employee.get("activity_signal_prompted_at")):
             continue

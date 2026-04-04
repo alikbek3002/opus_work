@@ -5,8 +5,9 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from i18n import normalize_language
 
-PART_TIME_EMPLOYMENT = "Подработка"
-FULL_TIME_EMPLOYMENT = "Полная занятость"
+PART_TIME_EMPLOYMENT = "Подработки"
+FULL_TIME_EMPLOYMENT = "Постоянная работа"
+SEASONAL_EMPLOYMENT = "Сезонная"
 
 PROMPT_INTERVAL = timedelta(hours=72)
 PROMPT_SCAN_INTERVAL_SECONDS = 60 * 60
@@ -78,6 +79,30 @@ def get_activity_bundle(language: str) -> dict[str, dict[str, object]]:
     return ACTIVITY_SIGNAL_META_KY if normalize_language(language) == "ky" else ACTIVITY_SIGNAL_META
 
 
+def resolve_activity_employment_type(employment_type: str | None) -> str | None:
+    if not employment_type:
+        return None
+
+    values = {
+        item.strip().lower()
+        for item in str(employment_type).split(",")
+        if item and item.strip()
+    }
+    if not values:
+        return None
+
+    if any("постоян" in value for value in values):
+        return FULL_TIME_EMPLOYMENT
+
+    if any("подработ" in value for value in values):
+        return PART_TIME_EMPLOYMENT
+
+    if any("сезон" in value for value in values):
+        return PART_TIME_EMPLOYMENT
+
+    return None
+
+
 def parse_iso_datetime(value: str | None) -> datetime | None:
     if not value:
         return None
@@ -95,7 +120,8 @@ def get_activity_signal_meta(employment_type: str | None, signal: str | None, la
     if not employment_type or not signal:
         return None
 
-    employment_meta = get_activity_bundle(language).get(employment_type)
+    resolved_employment_type = resolve_activity_employment_type(employment_type)
+    employment_meta = get_activity_bundle(language).get(resolved_employment_type or "")
     if not employment_meta:
         return None
 
@@ -110,7 +136,8 @@ def get_activity_signal_meta(employment_type: str | None, signal: str | None, la
 
 
 def get_activity_placeholder(employment_type: str | None, language: str = "ru") -> dict[str, str] | None:
-    employment_meta = get_activity_bundle(language).get(employment_type or "")
+    resolved_employment_type = resolve_activity_employment_type(employment_type)
+    employment_meta = get_activity_bundle(language).get(resolved_employment_type or "")
     if not employment_meta:
         return None
     return {
@@ -120,7 +147,8 @@ def get_activity_placeholder(employment_type: str | None, language: str = "ru") 
 
 
 def build_activity_signal_keyboard(employment_type: str | None, language: str = "ru") -> InlineKeyboardMarkup | None:
-    employment_meta = get_activity_bundle(language).get(employment_type or "")
+    resolved_employment_type = resolve_activity_employment_type(employment_type)
+    employment_meta = get_activity_bundle(language).get(resolved_employment_type or "")
     if not employment_meta:
         return None
 
@@ -137,7 +165,8 @@ def build_activity_signal_keyboard(employment_type: str | None, language: str = 
 
 
 def build_activity_signal_prompt(full_name: str | None, employment_type: str | None, language: str = "ru") -> str | None:
-    employment_meta = get_activity_bundle(language).get(employment_type or "")
+    resolved_employment_type = resolve_activity_employment_type(employment_type)
+    employment_meta = get_activity_bundle(language).get(resolved_employment_type or "")
     if not employment_meta:
         return None
 
