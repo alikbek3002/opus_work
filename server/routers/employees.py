@@ -9,6 +9,12 @@ from services.subscription_limits import get_daily_limit, get_daily_views_used
 
 router = APIRouter(prefix="/api/employees", tags=["Анкеты"])
 
+EMPLOYEE_CARD_SELECT = (
+    "id, full_name, gender, age, district, specializations, experience, employment_type, "
+    "schedule, opus_experience, is_verified, verification_status, verification_decided_at, "
+    "activity_signal, activity_signal_updated_at, contact_opens_count, telegram_id, created_at"
+)
+
 
 def normalize_filter_values(values: Optional[List[str]]) -> List[str]:
     """Очищает массив фильтров от пустых значений."""
@@ -17,15 +23,22 @@ def normalize_filter_values(values: Optional[List[str]]) -> List[str]:
     return [value.strip() for value in values if value and value.strip()]
 
 
-def matches_filter(field_value: Optional[str], filters: List[str]) -> bool:
-    """Проверяет, содержит ли строковое поле любой из фильтров."""
-    if not filters:
-        return True
-    if not field_value:
-        return False
+def build_ilike_any_pattern(values: List[str]) -> str:
+    """Формирует критерий PostgREST для ilike(any)."""
+    escaped_values = []
+    for value in values:
+        escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+        escaped_values.append(f'"*{escaped}*"')
+    return "{" + ",".join(escaped_values) + "}"
 
-    normalized_value = field_value.lower()
-    return any(value.lower() in normalized_value for value in filters)
+
+def apply_employee_filters(query, district_values: List[str], specialization_values: List[str]):
+    """Применяет серверные фильтры к запросу сотрудников."""
+    if district_values:
+        query = query.filter("district", "ilike(any)", build_ilike_any_pattern(district_values))
+    if specialization_values:
+        query = query.filter("specializations", "ilike(any)", build_ilike_any_pattern(specialization_values))
+    return query
 
 
 @router.get("", response_model=List[EmployeeCard])
@@ -45,28 +58,15 @@ async def get_employees(
     district_values = normalize_filter_values(district)
     specialization_values = normalize_filter_values(specialization)
 
-    # NOTE:
-    # Районы и специализации хранятся как строка (в т.ч. перечисления через запятую),
-    # поэтому фильтруем по вхождению подстроки в Python, чтобы корректно работал множественный выбор.
-    response = (
+    query = (
         supabase.table("employees")
-        .select(
-            "id, full_name, gender, age, district, specializations, experience, employment_type, schedule, opus_experience, is_verified, verification_status, verification_decided_at, activity_signal, activity_signal_updated_at, contact_opens_count, telegram_id, created_at"
-        )
+        .select(EMPLOYEE_CARD_SELECT)
         .order("is_verified", desc=True)
         .order("created_at", desc=True)
-        .execute()
     )
-    rows = response.data or []
-
-    filtered = [
-        row
-        for row in rows
-        if matches_filter(row.get("district"), district_values)
-        and matches_filter(row.get("specializations"), specialization_values)
-    ]
-
-    return filtered[offset:offset + limit]
+    query = apply_employee_filters(query, district_values, specialization_values)
+    response = query.range(offset, offset + limit - 1).execute()
+    return response.data or []
 
 
 @router.get("/count")
@@ -78,16 +78,10 @@ async def get_employees_count(
     district_values = normalize_filter_values(district)
     specialization_values = normalize_filter_values(specialization)
 
-    response = supabase.table("employees").select("id, district, specializations").execute()
-    rows = response.data or []
-
-    filtered = [
-        row
-        for row in rows
-        if matches_filter(row.get("district"), district_values)
-        and matches_filter(row.get("specializations"), specialization_values)
-    ]
-    return {"count": len(filtered)}
+    query = supabase.table("employees").select("id", count="exact")
+    query = apply_employee_filters(query, district_values, specialization_values)
+    response = query.execute()
+    return {"count": int(response.count or 0)}
 
 
 @router.get("/history", response_model=List[ViewedEmployeeHistoryItem])

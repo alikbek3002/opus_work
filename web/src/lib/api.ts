@@ -92,6 +92,17 @@ export const api = {
         return request<EmployeeCard[]>(`/employees?${searchParams}`);
     },
 
+    getEmployeesCount: (params: EmployeeFilters = {}) => {
+        const searchParams = new URLSearchParams();
+        (params.districts ?? []).forEach((district) => {
+            if (district) searchParams.append('district', district);
+        });
+        (params.specializations ?? []).forEach((specialization) => {
+            if (specialization) searchParams.append('specialization', specialization);
+        });
+        return request<EmployeesCountResponse>(`/employees/count?${searchParams}`);
+    },
+
     getViewedEmployees: () =>
         request<ViewedEmployeesResponse>('/employees/viewed'),
 
@@ -157,6 +168,8 @@ export interface EmployeeQueryParams {
     specializations?: string[];
 }
 
+export type EmployeeFilters = Omit<EmployeeQueryParams, 'page' | 'limit'>;
+
 export type VerificationStatus = 'pending' | 'verified' | 'rejected';
 export type ActivitySignal = 'high' | 'medium' | 'low';
 
@@ -188,6 +201,10 @@ export interface EmployeeCard {
     contact_opens_count: number;
     telegram_id: number | null;
     created_at: string | null;
+}
+
+export interface EmployeesCountResponse {
+    count: number;
 }
 
 export interface EmployeeFullProfile extends EmployeeCard {

@@ -7,13 +7,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     api,
     type EmployeeCard,
+    type EmployeeFilters,
     type EmployeeFullProfile,
     type EmployeeQueryParams,
+    type EmployeesCountResponse,
     type Subscription,
     type ViewedEmployeeHistoryItem,
     type ViewedEmployeesResponse,
 } from '../lib/api';
 import { queryKeys } from '../lib/query';
+
+export const EMPLOYEES_PAGE_SIZE = 50;
 
 /**
  * Загрузка списка сотрудников с фильтрами.
@@ -28,10 +32,11 @@ export function useEmployees(filters?: Omit<EmployeeQueryParams, 'limit'>) {
             districts: sortedDistricts,
             specializations: sortedSpecializations,
             page: filters?.page,
+            limit: EMPLOYEES_PAGE_SIZE,
         }),
         queryFn: () => api.getEmployees({
             page: filters?.page ?? 1,
-            limit: 50,
+            limit: EMPLOYEES_PAGE_SIZE,
             districts: sortedDistricts,
             specializations: sortedSpecializations,
         }),
@@ -40,6 +45,25 @@ export function useEmployees(filters?: Omit<EmployeeQueryParams, 'limit'>) {
         refetchOnMount: true,
         // Placeholder пока загружается — показываем пустой массив
         placeholderData: (previousData) => previousData,
+    });
+}
+
+export function useEmployeesCount(filters?: EmployeeFilters) {
+    const sortedDistricts = (filters?.districts ?? []).slice().sort();
+    const sortedSpecializations = (filters?.specializations ?? []).slice().sort();
+
+    return useQuery({
+        queryKey: queryKeys.employees.count({
+            districts: sortedDistricts,
+            specializations: sortedSpecializations,
+        }),
+        queryFn: () => api.getEmployeesCount({
+            districts: sortedDistricts,
+            specializations: sortedSpecializations,
+        }),
+        staleTime: 10 * 1000,
+        refetchOnWindowFocus: true,
+        placeholderData: (previousData: EmployeesCountResponse | undefined) => previousData,
     });
 }
 

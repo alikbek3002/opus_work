@@ -1,7 +1,7 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter } from 'lucide-react';
-import { useEmployees, useViewedEmployees, useViewedHistory, useViewEmployee } from '../hooks/useEmployees';
+import { ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { EMPLOYEES_PAGE_SIZE, useEmployees, useEmployeesCount, useViewedEmployees, useViewedHistory, useViewEmployee } from '../hooks/useEmployees';
 import { useSubscription } from '../hooks/useTariffs';
 import EmployeeCard from '../components/EmployeeCard';
 import EmployeeDetailsDialog from '../components/EmployeeDetailsDialog';
@@ -9,6 +9,30 @@ import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import { useAuth } from '../hooks/useAuth';
 import { type EmployeeCard as EmployeeCardType, type EmployeeFullProfile } from '../lib/api';
 import { EMPLOYEE_DISTRICT_OPTIONS, EMPLOYEE_SPECIALIZATION_OPTIONS } from '../lib/employee-options';
+
+type PaginationItem = number | 'ellipsis-left' | 'ellipsis-right';
+
+function buildPagination(currentPage: number, totalPages: number): PaginationItem[] {
+    if (totalPages <= 1) return [1];
+
+    const pages = new Set<number>([1, totalPages, currentPage - 1, currentPage, currentPage + 1]);
+    const sortedPages = Array.from(pages)
+        .filter((page) => page >= 1 && page <= totalPages)
+        .sort((a, b) => a - b);
+
+    const items: PaginationItem[] = [];
+    sortedPages.forEach((page, index) => {
+        if (index > 0) {
+            const previousPage = sortedPages[index - 1];
+            if (page - previousPage > 1) {
+                items.push(index === 1 ? 'ellipsis-left' : 'ellipsis-right');
+            }
+        }
+        items.push(page);
+    });
+
+    return items;
+}
 
 function isFreshProfile(
     employee: EmployeeCardType | null,
@@ -22,6 +46,7 @@ function isFreshProfile(
 export default function Dashboard() {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
+    const [currentPage, setCurrentPage] = useState(1);
     const [searchDistricts, setSearchDistricts] = useState<string[]>([]);
     const [searchSpecs, setSearchSpecs] = useState<string[]>([]);
     const [appliedFilters, setAppliedFilters] = useState<{ districts?: string[]; specializations?: string[] }>({});
@@ -29,11 +54,18 @@ export default function Dashboard() {
     const [openedProfiles, setOpenedProfiles] = useState<Record<string, EmployeeFullProfile>>({});
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-    const { data: employees = [], isPending, error, isError } = useEmployees(appliedFilters);
+    const { data: employees = [], isPending, error, isError } = useEmployees({
+        ...appliedFilters,
+        page: currentPage,
+    });
+    const { data: employeesCount } = useEmployeesCount(appliedFilters);
     const { data: subscription } = useSubscription();
     const { data: viewedEmployees } = useViewedEmployees();
     const { data: viewedHistory = [] } = useViewedHistory();
     const viewMutation = useViewEmployee();
+    const totalEmployees = employeesCount?.count ?? employees.length;
+    const totalPages = Math.max(Math.ceil(totalEmployees / EMPLOYEES_PAGE_SIZE), 1);
+    const paginationPages = useMemo(() => buildPagination(currentPage, totalPages), [currentPage, totalPages]);
     const viewedIds = useMemo(() => new Set(viewedEmployees?.viewed_ids ?? []), [viewedEmployees]);
     const viewedProfilesMap = useMemo(() => {
         const map: Record<string, EmployeeFullProfile> = {};
@@ -56,6 +88,7 @@ export default function Dashboard() {
     const unlockError = viewMutation.isError ? (viewMutation.error as Error).message : null;
 
     const handleSearch = useCallback(() => {
+        setCurrentPage(1);
         setAppliedFilters({
             districts: searchDistricts.length ? searchDistricts : undefined,
             specializations: searchSpecs.length ? searchSpecs : undefined,
@@ -63,10 +96,17 @@ export default function Dashboard() {
     }, [searchDistricts, searchSpecs]);
 
     const handleResetFilters = useCallback(() => {
+        setCurrentPage(1);
         setSearchDistricts([]);
         setSearchSpecs([]);
         setAppliedFilters({});
     }, []);
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
 
     const handleOpenEmployee = useCallback((employee: EmployeeCardType) => {
         setSelectedEmployee(employee);
@@ -188,6 +228,20 @@ export default function Dashboard() {
                 </div>
             )}
 
+            <div className="flex flex-col gap-2 rounded-2xl border border-border/50 bg-card px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <div>
+                    <p className="text-sm font-semibold text-foreground">
+                        Найдено анкет: {totalEmployees}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                        Страница {Math.min(currentPage, totalPages)} из {totalPages}
+                    </p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                    Загружаем по {EMPLOYEES_PAGE_SIZE} карточки за раз, чтобы список открывался быстрее.
+                </p>
+            </div>
+
             {employees.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 sm:py-20 px-4 text-center border border-border/50 rounded-2xl bg-card shadow-sm">
                     <span className="text-5xl mb-4">🔍</span>
@@ -204,6 +258,65 @@ export default function Dashboard() {
                             isViewed={viewedIds.has(emp.id)}
                         />
                     ))}
+                </div>
+            )}
+
+            {totalPages > 1 && (
+                <div className="flex flex-col gap-3 rounded-2xl border border-border/50 bg-card px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                    <p className="text-sm text-muted-foreground">
+                        Показаны анкеты {(currentPage - 1) * EMPLOYEES_PAGE_SIZE + 1}-{Math.min(currentPage * EMPLOYEES_PAGE_SIZE, totalEmployees)} из {totalEmployees}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-input bg-background px-4 text-sm font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                            Назад
+                        </button>
+
+                        <div className="rounded-xl border border-border/60 bg-muted/40 px-4 py-2 text-sm font-semibold text-foreground">
+                            {currentPage} / {totalPages}
+                        </div>
+
+                        <div className="hidden items-center gap-2 md:flex">
+                            {paginationPages.map((item) => (
+                                typeof item === 'number' ? (
+                                    <button
+                                        key={item}
+                                        type="button"
+                                        onClick={() => setCurrentPage(item)}
+                                        className={`inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm font-semibold transition-colors ${
+                                            item === currentPage
+                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                : 'border-input bg-background hover:bg-muted'
+                                        }`}
+                                    >
+                                        {item}
+                                    </button>
+                                ) : (
+                                    <span
+                                        key={item}
+                                        className="inline-flex h-10 min-w-10 items-center justify-center text-sm font-semibold text-muted-foreground"
+                                    >
+                                        ...
+                                    </span>
+                                )
+                            ))}
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-input bg-background px-4 text-sm font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Вперёд
+                            <ChevronRight className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
             )}
 

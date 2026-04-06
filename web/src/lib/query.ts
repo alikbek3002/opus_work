@@ -36,8 +36,10 @@ export const queryKeys = {
     // Employees
     employees: {
         all: ['employees'] as const,
-        list: (filters?: { districts?: string[]; specializations?: string[]; page?: number }) =>
+        list: (filters?: { districts?: string[]; specializations?: string[]; page?: number; limit?: number }) =>
             ['employees', 'list', filters] as const,
+        count: (filters?: { districts?: string[]; specializations?: string[] }) =>
+            ['employees', 'count', filters] as const,
         detail: (id: string) => ['employees', 'detail', id] as const,
         viewed: () => ['employees', 'viewed'] as const,
         history: () => ['employees', 'history'] as const,
