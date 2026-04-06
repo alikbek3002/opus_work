@@ -11,8 +11,9 @@ router = APIRouter(prefix="/api/employees", tags=["Анкеты"])
 
 EMPLOYEE_CARD_SELECT = (
     "id, full_name, gender, age, district, specializations, experience, employment_type, "
-    "schedule, opus_experience, is_verified, verification_status, verification_decided_at, "
-    "activity_signal, activity_signal_updated_at, contact_opens_count, telegram_id, created_at"
+    "schedule, has_sanitary_book, about_me, opus_experience, is_verified, verification_status, "
+    "verification_decided_at, activity_signal, activity_signal_updated_at, contact_opens_count, "
+    "telegram_id, created_at"
 )
 
 

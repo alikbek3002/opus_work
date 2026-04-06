@@ -18,7 +18,7 @@ interface ActivityMeta {
 }
 
 const metaByEmploymentType: Record<string, Record<ActivitySignal, ActivityMeta>> = {
-    "Подработка": {
+    "Подработки": {
         high: {
             label: "Готов(а) выйти сегодня или завтра",
             className: "text-emerald-700 bg-emerald-500/10 border-emerald-500/20",
@@ -35,7 +35,7 @@ const metaByEmploymentType: Record<string, Record<ActivitySignal, ActivityMeta>>
             icon: BriefcaseBusiness,
         },
     },
-    "Полная занятость": {
+    "Постоянная работа": {
         high: {
             label: "Активно ищет работу",
             className: "text-emerald-700 bg-emerald-500/10 border-emerald-500/20",
@@ -54,9 +54,32 @@ const metaByEmploymentType: Record<string, Record<ActivitySignal, ActivityMeta>>
     },
 };
 
+function resolveActivityEmploymentType(employmentType?: string | null) {
+    if (!employmentType) return null;
+
+    const normalizedValues = employmentType
+        .split(",")
+        .map((value) => value.trim().toLowerCase())
+        .filter(Boolean);
+
+    if (normalizedValues.some((value) => value.includes("постоян"))) {
+        return "Постоянная работа";
+    }
+    if (normalizedValues.some((value) => value.includes("подработ"))) {
+        return "Подработки";
+    }
+    if (normalizedValues.some((value) => value.includes("сезон"))) {
+        return "Подработки";
+    }
+
+    return null;
+}
+
 function getActivityMeta(employmentType?: string | null, activitySignal?: ActivitySignal | null): ActivityMeta | null {
     if (!employmentType || !activitySignal) return null;
-    return metaByEmploymentType[employmentType]?.[activitySignal] ?? null;
+    const resolvedEmploymentType = resolveActivityEmploymentType(employmentType);
+    if (!resolvedEmploymentType) return null;
+    return metaByEmploymentType[resolvedEmploymentType]?.[activitySignal] ?? null;
 }
 
 function formatUpdatedAt(value?: string | null) {

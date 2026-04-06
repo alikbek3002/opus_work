@@ -43,6 +43,8 @@ class EmployeeCard(BaseModel):
     experience: Optional[str] = None
     employment_type: Optional[str] = None
     schedule: Optional[str] = None
+    has_sanitary_book: Optional[str] = None
+    about_me: Optional[str] = None
     opus_experience: Optional[str] = None
     is_verified: bool = False
     verification_status: VerificationStatus = "pending"
