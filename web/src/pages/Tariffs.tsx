@@ -63,6 +63,15 @@ export default function Tariffs() {
         return texts[period] || period;
     };
 
+    const getContactsText = (count: number) => {
+        const mod10 = count % 10;
+        const mod100 = count % 100;
+        if (mod100 >= 11 && mod100 <= 14) return 'контактов';
+        if (mod10 === 1) return 'контакт';
+        if (mod10 >= 2 && mod10 <= 4) return 'контакта';
+        return 'контактов';
+    };
+
     const audienceByPeriod: Record<string, string> = {
         day: 'Попробовать сервис',
         week: 'Закрыть срочную вакансию',
@@ -78,7 +87,7 @@ export default function Tariffs() {
     };
 
     const discountByPeriod: Record<string, string | null> = {
-        day: null,
+        day: '29%',
         week: '34%',
         month: '45%',
         quarter: '40%',
@@ -95,17 +104,10 @@ export default function Tariffs() {
                     <div className="flex flex-col items-center gap-3 text-center">
                         <div className="inline-flex items-center gap-2 rounded-full border border-orange-300/70 bg-white/80 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[0.22em] text-orange-700">
                             <Flame className="h-3.5 w-3.5" />
-                            Ранний доступ
+                            Ранний доступ · Первые 50 клиентов
                         </div>
-                        <p className="text-lg font-black uppercase tracking-wide text-orange-950 sm:text-xl">
-                            Первые 50 клиентов
-                        </p>
                         <p className="text-sm font-semibold text-orange-900 sm:text-base">
-                            Скидка до 45% и цена фиксируется навсегда
-                        </p>
-                        <p className="inline-flex items-center gap-2 rounded-full bg-orange-950 px-4 py-2 text-xs font-semibold text-white sm:text-sm">
-                            <Lock className="h-3.5 w-3.5" />
-                            При продлении скидка сохраняется
+                            Скидки до 45% фиксируется навсегда при продлении
                         </p>
                     </div>
                 </div>
@@ -219,7 +221,7 @@ export default function Tariffs() {
                                     <PricingCard.List className="mt-auto">
                                         <PricingCard.ListItem>
                                             <CheckCircle className="text-primary w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
-                                            <span><strong>{tariff.card_limit}</strong> контактов</span>
+                                            <span><strong>{tariff.card_limit}</strong> {getContactsText(tariff.card_limit)}</span>
                                         </PricingCard.ListItem>
                                         {tariff.daily_limit && (
                                             <PricingCard.ListItem>

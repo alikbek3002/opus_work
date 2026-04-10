@@ -238,7 +238,7 @@ export default function Dashboard() {
                     </p>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                    Загружаем по {EMPLOYEES_PAGE_SIZE} карточки за раз, чтобы список открывался быстрее.
+                    Загружаем по 50 «карточек» за раз, чтобы список открывался быстрее.
                 </p>
             </div>
 

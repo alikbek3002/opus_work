@@ -40,7 +40,7 @@ export const EmployeeCard = React.forwardRef<HTMLDivElement, EmployeeCardProps>(
                         <div className="flex-1 min-w-0 pt-0.5">
                             <h3 className="text-lg font-bold text-card-foreground leading-tight">
                                 <span className="line-clamp-2">
-                                    {employee.full_name} — {employee.age || "?"} лет — {employee.gender || "Пол не указан"}
+                                    {employee.full_name} · {employee.age || "?"} лет · {employee.gender || "Пол не указан"}
                                 </span>
                             </h3>
                             <VerificationBadge
@@ -81,7 +81,7 @@ export const EmployeeCard = React.forwardRef<HTMLDivElement, EmployeeCardProps>(
                         }`}
                 >
                     {isViewed ? <Eye className="w-4 h-4" /> : <UserSearch className="w-4 h-4" />}
-                    {isViewed ? "Анкета и контакты" : "Подробности"}
+                    {isViewed ? "Анкета и контакты" : "Открыть анкету"}
                 </button>
             </div>
         );

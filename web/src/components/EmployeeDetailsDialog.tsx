@@ -138,7 +138,15 @@ export default function EmployeeDetailsDialog({
             <Dialog open={open} onOpenChange={(v) => { if (!v) setIsPhotoOpen(false); onOpenChange(v); }}>
                 <DialogContent className="sm:max-w-3xl w-[95vw] sm:w-full p-0 overflow-hidden border-0 shadow-2xl rounded-2xl bg-background">
                     <DialogHeader className="p-6 sm:p-8 border-b border-border/30 bg-muted/20 relative">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6">
+                        {/* Mobile close cross */}
+                        <button
+                            onClick={() => onOpenChange(false)}
+                            className="absolute right-4 top-4 z-50 rounded-full bg-background/80 p-2 text-muted-foreground backdrop-blur-sm transition-colors hover:bg-muted shadow-sm border border-border/50 sm:hidden"
+                            aria-label="Закрыть"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6 mt-6 sm:mt-0">
                             {photoTelegramId ? (
                                 <div
                                     className="relative group cursor-pointer shrink-0"
@@ -337,6 +345,7 @@ export default function EmployeeDetailsDialog({
                                     <p className="text-sm font-medium text-destructive text-center">{unlockError}</p>
                                 </div>
                             ) : null}
+
                         </div>
                     </div>
                 </DialogContent>

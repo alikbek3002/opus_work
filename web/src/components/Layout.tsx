@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { BadgePercent, Megaphone, Users, CreditCard, LogOut, LogIn, Menu, X, Settings, User } from 'lucide-react';
+import { BadgePercent, Megaphone, Users, CreditCard, LogOut, LogIn, Menu, X, Settings, User, Briefcase } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../hooks/useTariffs';
 import LoginModal from './LoginModal';
@@ -133,6 +133,15 @@ export default function Layout() {
                             <CreditCard strokeWidth={2.5} className="w-4 h-4" />
                             <span className="hidden sm:inline-block">Тарифы</span>
                         </Link>
+                        <a
+                            href="https://t.me/opus_work_bot"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-2 text-xs sm:text-sm font-medium transition-colors hover:text-primary text-muted-foreground whitespace-nowrap"
+                        >
+                            <Briefcase strokeWidth={2.5} className="w-4 h-4" />
+                            <span className="hidden sm:inline-block">Найти работу</span>
+                        </a>
                         {isAuthenticated ? (
                             <div className="flex items-center gap-3 sm:gap-4">
                                 <button
@@ -177,6 +186,15 @@ export default function Layout() {
                                     <CreditCard className="h-4 w-4" />
                                     Тарифы
                                 </Link>
+                                <a
+                                    href="https://t.me/opus_work_bot"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium hover:bg-muted"
+                                >
+                                    <Briefcase className="h-4 w-4" />
+                                    Найти работу
+                                </a>
                                 {isAuthenticated ? (
                                     <>
                                         <button
