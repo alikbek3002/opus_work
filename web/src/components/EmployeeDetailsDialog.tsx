@@ -136,17 +136,30 @@ export default function EmployeeDetailsDialog({
     return (
         <>
             <Dialog open={open} onOpenChange={(v) => { if (!v) setIsPhotoOpen(false); onOpenChange(v); }}>
-                <DialogContent className="sm:max-w-3xl w-[95vw] sm:w-full p-0 overflow-hidden border-0 shadow-2xl rounded-2xl bg-background">
-                    <DialogHeader className="p-6 sm:p-8 border-b border-border/30 bg-muted/20 relative">
-                        {/* Mobile close cross */}
+                <DialogContent className="sm:max-w-4xl w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] p-0 overflow-hidden border-0 bg-background flex flex-col m-0 max-w-none rounded-none sm:rounded-2xl sm:shadow-2xl [&>button]:hidden">
+                    <DialogHeader className="p-4 sm:p-8 border-b border-border/30 bg-muted/20 relative shrink-0">
+                        {/* Mobile Header Top Bar */}
+                        <div className="flex items-center justify-between w-full sm:hidden pb-3">
+                            <h2 className="text-sm font-bold text-muted-foreground">Анкета сотрудника</h2>
+                            <button
+                                onClick={() => onOpenChange(false)}
+                                className="flex items-center justify-center gap-1.5 text-sm font-semibold text-foreground bg-muted/80 hover:bg-muted/100 active:scale-95 px-4 py-1.5 rounded-full transition-all shadow-sm border border-border/50"
+                            >
+                                <X className="h-4 w-4" />
+                                <span>Закрыть</span>
+                            </button>
+                        </div>
+                        
+                        {/* Desktop close cross */}
                         <button
                             onClick={() => onOpenChange(false)}
-                            className="absolute right-4 top-4 z-50 rounded-full bg-background/80 p-2 text-muted-foreground backdrop-blur-sm transition-colors hover:bg-muted shadow-sm border border-border/50 sm:hidden"
+                            className="hidden sm:flex absolute right-4 top-4 z-50 items-center justify-center rounded-full bg-background/80 p-2 text-muted-foreground backdrop-blur-sm transition-colors hover:bg-muted shadow-sm border border-border/50"
                             aria-label="Закрыть"
                         >
                             <X className="h-5 w-5" />
                         </button>
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6 mt-6 sm:mt-0">
+
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mt-1 sm:mt-0">
                             {photoTelegramId ? (
                                 <div
                                     className="relative group cursor-pointer shrink-0"
@@ -192,7 +205,7 @@ export default function EmployeeDetailsDialog({
                         </div>
                     </DialogHeader>
 
-                    <div className="px-6 py-6 sm:px-8 sm:py-8 max-h-[75vh] overflow-y-auto">
+                    <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8">
                         <div className="space-y-8">
                             <section>
                                 <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">Информация</h4>
