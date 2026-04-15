@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { type MouseEvent, useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { BadgePercent, Megaphone, Users, CreditCard, LogOut, LogIn, Menu, X, Settings, User, Briefcase } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -6,6 +6,11 @@ import { useSubscription } from '../hooks/useTariffs';
 import LoginModal from './LoginModal';
 import SettingsModal from './SettingsModal';
 import { InfiniteSlider } from './ui/infinite-slider';
+import {
+    OPUS_WORK_BOT_APP_URL,
+    OPUS_WORK_BOT_WEB_URL,
+    openTelegramLink,
+} from '@/lib/telegram';
 
 const tariffAnnouncements = [
     'РАННИЙ ДОСТУП: СКИДКА ДЛЯ ПЕРВЫХ 50 ЗАКАЗЧИКОВ',
@@ -37,6 +42,26 @@ export default function Layout() {
     useEffect(() => {
         setIsMobileMenuOpen(false);
     }, [location.pathname]);
+
+    const handleFindJobClick = (event: MouseEvent<HTMLAnchorElement>) => {
+        if (
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+        setIsMobileMenuOpen(false);
+
+        openTelegramLink({
+            appUrl: OPUS_WORK_BOT_APP_URL,
+            webUrl: OPUS_WORK_BOT_WEB_URL,
+        });
+    };
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -134,9 +159,10 @@ export default function Layout() {
                             <span className="hidden sm:inline-block">Тарифы</span>
                         </Link>
                         <a
-                            href="https://t.me/opus_work_bot"
+                            href={OPUS_WORK_BOT_WEB_URL}
                             target="_blank"
                             rel="noreferrer"
+                            onClick={handleFindJobClick}
                             className="flex items-center gap-2 text-xs sm:text-sm font-medium transition-colors hover:text-primary text-muted-foreground whitespace-nowrap"
                         >
                             <Briefcase strokeWidth={2.5} className="w-4 h-4" />
@@ -187,9 +213,10 @@ export default function Layout() {
                                     Тарифы
                                 </Link>
                                 <a
-                                    href="https://t.me/opus_work_bot"
+                                    href={OPUS_WORK_BOT_WEB_URL}
                                     target="_blank"
                                     rel="noreferrer"
+                                    onClick={handleFindJobClick}
                                     className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium hover:bg-muted"
                                 >
                                     <Briefcase className="h-4 w-4" />
