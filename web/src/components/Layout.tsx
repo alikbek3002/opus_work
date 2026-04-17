@@ -109,6 +109,17 @@ export default function Layout() {
                     </Link>
 
                     <div className="flex items-center gap-2 sm:hidden">
+                        <a
+                            href={OPUS_WORK_BOT_WEB_URL}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={handleFindJobClick}
+                            className="flex h-9 sm:h-10 items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-2.5 text-xs font-semibold transition-colors hover:bg-primary/90 shrink-0"
+                        >
+                            <Briefcase className="h-3.5 w-3.5" />
+                            <span>Работа</span>
+                        </a>
+
                         <div className="flex flex-col items-end text-[10px] sm:text-[11px] leading-[1.1] sm:leading-tight text-muted-foreground shrink-0 whitespace-nowrap">
                             <span>
                                 Остаток: <span className="font-semibold text-foreground">{subscription?.cards_remaining ?? 0}</span>
